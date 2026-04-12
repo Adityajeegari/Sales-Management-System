@@ -69,9 +69,19 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
 }
 .btn-login:hover{background:var(--accent-h);box-shadow:0 6px 20px rgba(79,124,255,.4);transform:translateY(-1px)}
 .btn-login:active{transform:translateY(0)}
-.lfoot{text-align:center;margin-top:1rem;font-size:.82rem;color:var(--muted)}
+.lfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:1rem;font-size:.82rem;color:var(--muted)}
 .lfoot a{color:var(--accent);cursor:pointer;font-weight:500}
 .lfoot a:hover{text-decoration:underline}
+.lor{display:flex;align-items:center;gap:10px;margin:12px 0 4px}
+.lor::before,.lor::after{content:'';flex:1;height:1px;background:var(--border)}
+.lor span{font-size:11px;color:var(--hint);text-transform:uppercase;letter-spacing:.08em}
+.btn-google{
+  width:100%;background:#fff;color:#374151;border:1px solid var(--border);
+  border-radius:var(--rs);padding:.72rem .9rem;font-size:.86rem;font-weight:600;
+  display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;
+}
+.btn-google:hover{background:#f8fafc;border-color:var(--border2)}
+.btn-google .gmark{font-weight:800;color:#ea4335;letter-spacing:-.02em}
 .login-feature-strip{display:flex;justify-content:center;gap:1.5rem;margin-top:1.8rem}
 .lf-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--hint)}
 .lf-dot{width:6px;height:6px;border-radius:50%;background:var(--success)}
@@ -487,9 +497,13 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
       <button class="btn-login" onclick="doLogin()">
         Sign in to SalesOS →
       </button>
+      <div class="lor"><span>or</span></div>
+      <button class="btn-google" onclick="signupWithGoogle()">
+        <span class="gmark">G</span>
+        Sign up with Google
+      </button>
       <p class="lfoot">
         <a onclick="toast('Please contact your admin to reset password','ok')">Forgot password?</a>
-        &nbsp;·&nbsp;
         <a onclick="openM('createAccount')">Create account</a>
       </p>
     </div>
@@ -981,6 +995,25 @@ const DB={
 
 let cUser=null,currentRole='',lPg=1,cPg=1,PP=6,lSK='',lSD=1,lF='',lSF='',cF='',cSF='';
 let currentLeadId=null,currentDealId=null,currentCustomerId=null;
+const USER_STORE_KEY='salesos_users_v1';
+
+function loadUsersFromStorage(){
+  try{
+    const raw=localStorage.getItem(USER_STORE_KEY);
+    if(!raw)return;
+    const parsed=JSON.parse(raw);
+    if(Array.isArray(parsed)&&parsed.length){
+      DB.users=parsed;
+    }
+  }catch(_e){
+    // Ignore corrupted local data and continue with defaults.
+  }
+}
+function persistUsers(){
+  localStorage.setItem(USER_STORE_KEY,JSON.stringify(DB.users));
+}
+
+loadUsersFromStorage();
 
 function isManagement(){
   return currentRole==='Management Authority';
@@ -1011,7 +1044,11 @@ function applyRolePermissions(){
 function doLogin(){
   const e=document.getElementById('lemail').value.trim(),p=document.getElementById('lpass').value,r=document.getElementById('lrole').value;
   const err=document.getElementById('lerr');
-  const u=DB.users.find(u=>(u.email===e||u.username===e||u.name===e)&&u.pass===p);
+  const u=DB.users.find(u=>{
+    const matchId=u.email===e||u.username===e||u.name===e;
+    const matchSecret=(u.auth==='google'&&p==='')||u.pass===p;
+    return matchId&&matchSecret;
+  });
   if(!u){err.classList.add('show');return;}
   err.classList.remove('show');cUser=u;currentRole=u.role||r;
   document.getElementById('sava').textContent=u.ava;
@@ -1032,12 +1069,37 @@ function saveAccount(){
   const username=document.getElementById('ca-username').value.trim(),email=document.getElementById('ca-email').value.trim();
   const pass=document.getElementById('ca-pass').value,pass2=document.getElementById('ca-pass2').value;
   if(!username||!email||!pass){toast('All fields are required','err');return;}
+  const emailKey=email.toLowerCase();
+  const userKey=username.toLowerCase();
+  if(DB.users.some(u=>String(u.email||'').toLowerCase()===emailKey)){toast('Email is already registered','err');return;}
+  if(DB.users.some(u=>String(u.username||u.name||'').toLowerCase()===userKey)){toast('Username is already taken','err');return;}
   if(pass.length<6){toast('Password must be at least 6 characters','err');return;}
   if(pass!==pass2){toast('Passwords do not match','err');return;}
   const role=document.getElementById('ca-role').value;
   DB.users.push({email,username,pass,name:username,role,ava:username.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()});
+  persistUsers();
   document.getElementById('lemail').value=email;document.getElementById('lpass').value=pass;
   closeM();toast('Account created — you can now sign in','ok');
+}
+function signupWithGoogle(){
+  const email=(prompt('Enter your Google email address (example@gmail.com)')||'').trim();
+  if(!email)return;
+  const valid=/^[^\s@]+@gmail\.com$/i.test(email);
+  if(!valid){toast('Use a valid Gmail address','err');return;}
+  const emailKey=email.toLowerCase();
+  let user=DB.users.find(u=>String(u.email||'').toLowerCase()===emailKey);
+  if(!user){
+    const base=email.split('@')[0].replace(/[^a-zA-Z0-9._-]/g,'').toLowerCase()||'googleuser';
+    let username=base;
+    let i=1;
+    while(DB.users.some(u=>String(u.username||u.name||'').toLowerCase()===username.toLowerCase())){username=base+i;i++;}
+    user={email,username,pass:'',auth:'google',name:username,role:'Staff',ava:username.slice(0,2).toUpperCase()};
+    DB.users.push(user);
+    persistUsers();
+  }
+  document.getElementById('lemail').value=user.email;
+  document.getElementById('lpass').value='';
+  toast('Google account ready. Leave password empty and sign in.','ok');
 }
 function changePassword(){
   const curr=document.getElementById('cp-current')?.value,nw=document.getElementById('cp-new')?.value,conf=document.getElementById('cp-confirm')?.value;
@@ -1045,7 +1107,7 @@ function changePassword(){
   if(nw.length<6){toast('New password must be 6+ characters','err');return;}
   if(nw!==conf){toast('Passwords do not match','err');return;}
   if(curr!==cUser?.pass){toast('Current password is incorrect','err');return;}
-  if(cUser)cUser.pass=nw;
+  if(cUser){cUser.pass=nw;cUser.auth='local';persistUsers();}
   toast('Password updated successfully','ok');
 }
 function deleteAccount(){
