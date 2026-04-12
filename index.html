@@ -90,6 +90,26 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
 .lf-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--hint)}
 .lf-dot{width:6px;height:6px;border-radius:50%;background:var(--success)}
 
+#m-createAccount{
+  max-width:540px;
+  background:linear-gradient(180deg,#0a1120,#0b1424);
+  border:1px solid rgba(148,163,184,.28);
+}
+#m-createAccount .mhead{margin-bottom:.9rem}
+#m-createAccount .mtitle{font-family:'Syne',sans-serif;font-size:1.65rem;color:#f8fafc}
+#m-createAccount .signup-note{font-size:.86rem;color:#94a3b8;margin-bottom:.8rem}
+#m-createAccount .mgrid{grid-template-columns:1fr}
+#m-createAccount .mgrid .fg{margin-bottom:.8rem}
+#m-createAccount .mgrid label{color:#e2e8f0}
+#m-createAccount .mgrid input,#m-createAccount .mgrid select{
+  background:#0f172a;border:1px solid #334155;color:#f8fafc;border-radius:10px;
+}
+#m-createAccount .mgrid input:focus,#m-createAccount .mgrid select:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.2)}
+#m-createAccount .create-btn{width:100%;justify-content:center;font-family:'Syne',sans-serif;font-size:1rem;padding:.78rem;border-radius:10px;background:#16a34a;box-shadow:0 8px 20px rgba(22,163,74,.35)}
+#m-createAccount .create-btn:hover{background:#15803d}
+#m-createAccount .signup-foot{text-align:center;margin-top:.95rem;font-size:.92rem;color:#cbd5e1}
+#m-createAccount .signup-foot a{color:#60a5fa;cursor:pointer;font-weight:500}
+
 /* ═══ APP ═══ */
 #page-app{flex-direction:row}
 
@@ -926,15 +946,25 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
 
   <!-- CREATE ACCOUNT -->
   <div class="modal" id="m-createAccount" style="display:none">
-    <div class="mhead"><div class="mtitle">Create Account</div><button class="mclose" onclick="closeM()">✕</button></div>
+    <div class="mhead"><div class="mtitle">Sign up to SalesOS</div><button class="mclose" onclick="closeM()">✕</button></div>
+    <div class="signup-note">Create your account to access the dashboard.</div>
+    <button class="btn-social" onclick="closeM();signupWithGoogle()">
+      <span class="gmark">G</span>
+      Continue with Google
+    </button>
+    <button class="btn-social" onclick="toast('Apple sign-up coming soon','ok')">
+      Continue with Apple
+    </button>
+    <div class="lor"><span>or</span></div>
     <div class="mgrid">
       <div class="fg"><label>Username</label><input id="ca-username" placeholder="alexmorgan"></div>
       <div class="fg"><label>Authority</label><select id="ca-role"><option value="Staff">Staff</option><option value="Management Authority">Management Authority</option></select></div>
-      <div class="fg full"><label>Email</label><input type="email" id="ca-email" placeholder="alex@company.com"></div>
+      <div class="fg"><label>Email</label><input type="email" id="ca-email" placeholder="alex@company.com"></div>
       <div class="fg"><label>Password</label><input type="password" id="ca-pass" placeholder="Create password"></div>
       <div class="fg"><label>Confirm Password</label><input type="password" id="ca-pass2" placeholder="Confirm password"></div>
     </div>
-    <div class="mfooter"><button class="btn btn-g" onclick="closeM()">Cancel</button><button class="btn btn-p" onclick="saveAccount()">Create Account</button></div>
+    <button class="btn create-btn" onclick="saveAccount()">Create account</button>
+    <div class="signup-foot">Already have an account? <a onclick="closeM()">Sign in</a></div>
   </div>
 
   <!-- NOTIFICATIONS -->
