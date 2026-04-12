@@ -34,55 +34,59 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
 /* ═══ LOGIN ═══ */
 #page-login{
   align-items:center;justify-content:center;
-  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(79,124,255,.08) 0%,transparent 70%),var(--bg);
+  background:radial-gradient(ellipse 90% 70% at 50% -10%,rgba(79,124,255,.18) 0%,transparent 60%),linear-gradient(180deg,#020617,#0b1220 55%,#101827 100%);
   position:relative;overflow:hidden;
 }
-#page-login::before{content:'';position:absolute;top:-120px;right:-80px;width:400px;height:400px;background:radial-gradient(circle,rgba(79,124,255,.06) 0%,transparent 70%);pointer-events:none}
-#page-login::after{content:'';position:absolute;bottom:-80px;left:-60px;width:300px;height:300px;background:radial-gradient(circle,rgba(167,139,250,.06) 0%,transparent 70%);pointer-events:none}
-.login-wrap{width:100%;max-width:420px;padding:1.5rem;position:relative;z-index:1}
-.login-logo{text-align:center;margin-bottom:2rem}
-.lmark{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;color:var(--primary);letter-spacing:-1px}
-.lmark span{color:var(--accent)}
-.lsub{font-size:11px;color:var(--hint);text-transform:uppercase;letter-spacing:2.5px;margin-top:4px}
+.login-wrap{width:100%;max-width:460px;padding:1.5rem;position:relative;z-index:1}
+.login-logo{text-align:center;margin-bottom:1.2rem}
+.lmark{width:54px;height:54px;margin:0 auto 12px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:#0b1220;letter-spacing:-.5px}
+.lmark span{color:#0b1220}
+.lsub{font-size:38px;color:#fff;line-height:0;margin-top:0;opacity:.98}
 .login-card{
-  background:var(--card);border:1px solid var(--border);border-radius:18px;padding:2rem 2rem 1.8rem;
-  box-shadow:0 1px 3px rgba(0,0,0,.04),0 8px 32px rgba(0,0,0,.06);
+  background:linear-gradient(180deg,#0a1120,#0b1424);
+  border:1px solid rgba(148,163,184,.28);
+  border-radius:14px;padding:1.4rem 1.2rem 1.1rem;
+  box-shadow:0 16px 42px rgba(2,6,23,.45);
 }
-.login-card h2{font-family:'Syne',sans-serif;font-size:1.35rem;font-weight:700;color:var(--primary);margin-bottom:.3rem}
-.login-card .sub{font-size:.875rem;color:var(--muted);margin-bottom:1.4rem}
-.lerr{background:var(--danger-bg);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:.5rem .9rem;font-size:.82rem;color:var(--danger);margin-bottom:.9rem;display:none;align-items:center;gap:6px}
+.login-card h2{font-family:'Syne',sans-serif;font-size:2rem;font-weight:700;color:#f8fafc;margin-bottom:.35rem;text-align:center}
+.login-card .sub{font-size:.9rem;color:#94a3b8;margin-bottom:1.2rem;text-align:center}
+.lerr{background:rgba(127,29,29,.45);border:1px solid rgba(248,113,113,.45);border-radius:8px;padding:.55rem .9rem;font-size:.82rem;color:#fecaca;margin-bottom:.9rem;display:none;align-items:center;gap:6px}
 .lerr::before{content:'✕';font-weight:700}
 .lerr.show{display:flex}
-.fg{margin-bottom:1rem}
-.fg label{display:block;font-size:.72rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.4rem}
+.fg{margin-bottom:.95rem}
+.fg label{display:block;font-size:.74rem;font-weight:600;color:#e2e8f0;letter-spacing:.02em;margin-bottom:.45rem}
 .fg input,.fg select{
-  width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);
-  padding:.65rem .9rem;font-size:.875rem;color:var(--text);outline:none;
+  width:100%;background:#0f172a;border:1px solid #334155;border-radius:10px;
+  padding:.7rem .9rem;font-size:.94rem;color:#f8fafc;outline:none;
   transition:border-color .2s,box-shadow .2s;
 }
-.fg input:focus,.fg select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.fg input:focus,.fg select:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.2)}
 .btn-login{
-  width:100%;background:var(--accent);color:#fff;font-family:'Syne',sans-serif;
-  font-weight:700;font-size:.9rem;padding:.78rem;border-radius:var(--rs);
+  width:100%;background:#16a34a;color:#fff;font-family:'Syne',sans-serif;
+  font-weight:700;font-size:1rem;padding:.78rem;border-radius:10px;
   transition:all .2s;letter-spacing:.01em;
-  box-shadow:0 4px 14px rgba(79,124,255,.3);
+  box-shadow:0 8px 20px rgba(22,163,74,.35);
 }
-.btn-login:hover{background:var(--accent-h);box-shadow:0 6px 20px rgba(79,124,255,.4);transform:translateY(-1px)}
+.btn-login:hover{background:#15803d;box-shadow:0 10px 24px rgba(22,163,74,.4);transform:translateY(-1px)}
 .btn-login:active{transform:translateY(0)}
-.lfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:1rem;font-size:.82rem;color:var(--muted)}
-.lfoot a{color:var(--accent);cursor:pointer;font-weight:500}
+.lfoot{text-align:center;margin-top:1.05rem;font-size:.98rem;color:#cbd5e1}
+.lfoot a{color:#60a5fa;cursor:pointer;font-weight:500}
 .lfoot a:hover{text-decoration:underline}
-.lor{display:flex;align-items:center;gap:10px;margin:12px 0 4px}
-.lor::before,.lor::after{content:'';flex:1;height:1px;background:var(--border)}
-.lor span{font-size:11px;color:var(--hint);text-transform:uppercase;letter-spacing:.08em}
-.btn-google{
-  width:100%;background:#fff;color:#374151;border:1px solid var(--border);
-  border-radius:var(--rs);padding:.72rem .9rem;font-size:.86rem;font-weight:600;
+.lor{display:flex;align-items:center;gap:10px;margin:12px 0 10px}
+.lor::before,.lor::after{content:'';flex:1;height:1px;background:#334155}
+.lor span{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em}
+.btn-social{
+  width:100%;background:#1e293b;color:#f8fafc;border:1px solid #334155;
+  border-radius:10px;padding:.72rem .9rem;font-size:.97rem;font-weight:600;
   display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;
+  margin-bottom:8px;
 }
-.btn-google:hover{background:#f8fafc;border-color:var(--border2)}
-.btn-google .gmark{font-weight:800;color:#ea4335;letter-spacing:-.02em}
-.login-feature-strip{display:flex;justify-content:center;gap:1.5rem;margin-top:1.8rem}
+.btn-social:hover{background:#273549;border-color:#475569}
+.btn-social .gmark{font-weight:800;color:#ea4335;letter-spacing:-.02em}
+.pw-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:.45rem}
+.pw-row .fp{font-size:.82rem;color:#60a5fa;cursor:pointer}
+.pw-row .fp:hover{text-decoration:underline}
+.login-feature-strip{display:flex;justify-content:center;gap:1.5rem;margin-top:1.2rem}
 .lf-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--hint)}
 .lf-dot{width:6px;height:6px;border-radius:50%;background:var(--success)}
 
@@ -476,35 +480,36 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
       <div class="lsub">Enterprise Management Platform</div>
     </div>
     <div class="login-card">
-      <h2>Welcome back</h2>
-      <p class="sub">Sign in to access your sales dashboard</p>
+      <h2>Sign in to SalesOS</h2>
+      <p class="sub">Use your username or email to continue</p>
       <div class="lerr" id="lerr">Invalid credentials. Please try again.</div>
       <div class="fg">
         <label>Username or Email Address</label>
         <input type="text" id="lemail" placeholder="username or you@company.com" autocomplete="username email">
       </div>
-      <div class="fg">
+      <div class="pw-row">
         <label>Password</label>
+        <a class="fp" onclick="toast('Please contact your admin to reset password','ok')">Forgot password?</a>
+      </div>
+      <div class="fg">
         <input type="password" id="lpass" placeholder="••••••••" autocomplete="current-password">
       </div>
-      <div class="fg">
-        <label>Authority</label>
-        <select id="lrole">
-          <option value="Management Authority">Management Authority</option>
-          <option value="Staff">Staff</option>
-        </select>
-      </div>
       <button class="btn-login" onclick="doLogin()">
-        Sign in to SalesOS →
+        Sign in
       </button>
       <div class="lor"><span>or</span></div>
-      <button class="btn-google" onclick="signupWithGoogle()">
+      <button class="btn-social" onclick="toast('Passkey sign-in coming soon','ok')">
+        Continue with passkey
+      </button>
+      <button class="btn-social" onclick="signupWithGoogle()">
         <span class="gmark">G</span>
-        Sign up with Google
+        Continue with Google
+      </button>
+      <button class="btn-social" onclick="toast('Apple sign-in coming soon','ok')">
+        Continue with Apple
       </button>
       <p class="lfoot">
-        <a onclick="toast('Please contact your admin to reset password','ok')">Forgot password?</a>
-        <a onclick="openM('createAccount')">Create account</a>
+        New to SalesOS? <a onclick="openM('createAccount')">Create an account</a>
       </p>
     </div>
     <div class="login-feature-strip">
@@ -1042,7 +1047,7 @@ function applyRolePermissions(){
 
 // ═══ AUTH ═══
 function doLogin(){
-  const e=document.getElementById('lemail').value.trim(),p=document.getElementById('lpass').value,r=document.getElementById('lrole').value;
+  const e=document.getElementById('lemail').value.trim(),p=document.getElementById('lpass').value;
   const err=document.getElementById('lerr');
   const u=DB.users.find(u=>{
     const matchId=u.email===e||u.username===e||u.name===e;
@@ -1050,7 +1055,7 @@ function doLogin(){
     return matchId&&matchSecret;
   });
   if(!u){err.classList.add('show');return;}
-  err.classList.remove('show');cUser=u;currentRole=u.role||r;
+  err.classList.remove('show');cUser=u;currentRole=u.role||'Staff';
   document.getElementById('sava').textContent=u.ava;
   document.getElementById('sname').textContent=u.name;
   document.getElementById('srole').textContent=currentRole;
