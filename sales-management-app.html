@@ -86,6 +86,32 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
 .pw-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:.45rem}
 .pw-row .fp{font-size:.82rem;color:#60a5fa;cursor:pointer}
 .pw-row .fp:hover{text-decoration:underline}
+.gchooser{max-width:980px;background:#0b1220;border:1px solid #1f2937;padding:0;overflow:hidden}
+.ghead{height:62px;padding:0 18px;border-bottom:1px solid #1f2937;display:flex;align-items:center;gap:10px;color:#f8fafc;font-weight:600}
+.ghead .g{font-weight:800;color:#ea4335;font-size:30px;line-height:1}
+.gbody{display:grid;grid-template-columns:1fr 1.1fr;gap:0}
+.gleft{padding:42px 46px;color:#f8fafc;border-right:1px solid #1f2937}
+.gleft .ghicon{width:46px;height:46px;border-radius:50%;background:#111827;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:20px}
+.gleft h3{font-family:'Syne',sans-serif;font-size:42px;line-height:1.1;margin-bottom:12px}
+.gleft p{font-size:17px;color:#cbd5e1}
+.gright{padding:42px 40px;color:#f8fafc}
+.ga-list{display:flex;flex-direction:column}
+.ga-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid #1f2937;cursor:pointer;transition:background .12s}
+.ga-item:hover{background:rgba(255,255,255,.03)}
+.ga-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0}
+.ga-main{display:flex;flex-direction:column;min-width:0}
+.ga-name{font-size:31px;font-weight:600;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1}
+.ga-mail{font-size:15px;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ga-use-other{font-size:38px;font-weight:600;color:#f8fafc}
+.ga-foot{margin-top:18px;font-size:13px;color:#94a3b8;line-height:1.45}
+
+@media(max-width:900px){
+  .gchooser{max-width:620px}
+  .gbody{grid-template-columns:1fr}
+  .gleft{border-right:none;border-bottom:1px solid #1f2937;padding:22px 22px 18px}
+  .gleft h3{font-size:30px}
+  .gright{padding:20px 22px 24px}
+}
 .login-feature-strip{display:flex;justify-content:center;gap:1.5rem;margin-top:1.2rem}
 .lf-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--hint)}
 .lf-dot{width:6px;height:6px;border-radius:50%;background:var(--success)}
@@ -948,7 +974,7 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
   <div class="modal" id="m-createAccount" style="display:none">
     <div class="mhead"><div class="mtitle">Sign up to SalesOS</div><button class="mclose" onclick="closeM()">✕</button></div>
     <div class="signup-note">Create your account to access the dashboard.</div>
-    <button class="btn-social" onclick="closeM();signupWithGoogle()">
+    <button class="btn-social" onclick="closeM();signupWithGoogle('signup')">
       <span class="gmark">G</span>
       Continue with Google
     </button>
@@ -978,6 +1004,22 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
       <button class="btn btn-g btn-sm" onclick="toast('All notifications marked as read','ok')">Mark all read</button>
     </div>
     <div id="notifList" style="display:flex;flex-direction:column;gap:10px;max-height:360px;overflow:auto;padding-right:4px"></div>
+  </div>
+
+  <!-- GOOGLE CHOOSER -->
+  <div class="modal gchooser" id="m-googleChooser" style="display:none">
+    <div class="ghead"><span class="g">G</span> Sign in with Google</div>
+    <div class="gbody">
+      <div class="gleft">
+        <div class="ghicon">🐙</div>
+        <h3>Choose an account</h3>
+        <p>to continue to SalesOS</p>
+      </div>
+      <div class="gright">
+        <div class="ga-list" id="ga-list"></div>
+        <div class="ga-foot">Before using this app, you can review SalesOS privacy and terms.</div>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -1031,6 +1073,7 @@ const DB={
 let cUser=null,currentRole='',lPg=1,cPg=1,PP=6,lSK='',lSD=1,lF='',lSF='',cF='',cSF='';
 let currentLeadId=null,currentDealId=null,currentCustomerId=null;
 const USER_STORE_KEY='salesos_users_v1';
+let googleFlow='login';
 
 function loadUsersFromStorage(){
   try{
@@ -1116,12 +1159,39 @@ function saveAccount(){
   document.getElementById('lemail').value=email;document.getElementById('lpass').value=pass;
   closeM();toast('Account created — you can now sign in','ok');
 }
-function signupWithGoogle(){
+function getGoogleAccounts(){
+  const seen=new Set();
+  return DB.users.filter(u=>/^[^\s@]+@gmail\.com$/i.test(String(u.email||''))).filter(u=>{
+    const key=String(u.email).toLowerCase();
+    if(seen.has(key))return false;
+    seen.add(key);
+    return true;
+  });
+}
+function renderGoogleChooser(){
+  const list=document.getElementById('ga-list');
+  if(!list)return;
+  const accounts=getGoogleAccounts();
+  const rows=accounts.map((u,i)=>{
+    const colors=['#f97316','#3b82f6','#84cc16','#06b6d4','#a855f7'];
+    const av=(u.name||u.username||u.email||'U').trim().charAt(0).toUpperCase();
+    return `<div class="ga-item" onclick="selectGoogleAccount('${String(u.email).replace(/'/g,"\\'")}')"><div class="ga-avatar" style="background:${colors[i%colors.length]}">${av}</div><div class="ga-main"><div class="ga-name">${u.name||u.username||'Google User'}</div><div class="ga-mail">${u.email}</div></div></div>`;
+  }).join('');
+  list.innerHTML=rows+`<div class="ga-item" onclick="useAnotherGoogleAccount()"><div class="ga-avatar" style="background:#334155">+</div><div class="ga-use-other">Use another account</div></div>`;
+}
+function signupWithGoogle(mode='login'){
+  googleFlow=mode;
+  renderGoogleChooser();
+  openM('googleChooser');
+}
+function useAnotherGoogleAccount(){
   const email=(prompt('Enter your Google email address (example@gmail.com)')||'').trim();
   if(!email)return;
-  const valid=/^[^\s@]+@gmail\.com$/i.test(email);
-  if(!valid){toast('Use a valid Gmail address','err');return;}
-  const emailKey=email.toLowerCase();
+  if(!/^[^\s@]+@gmail\.com$/i.test(email)){toast('Use a valid Gmail address','err');return;}
+  selectGoogleAccount(email);
+}
+function selectGoogleAccount(email){
+  const emailKey=String(email||'').toLowerCase();
   let user=DB.users.find(u=>String(u.email||'').toLowerCase()===emailKey);
   if(!user){
     const base=email.split('@')[0].replace(/[^a-zA-Z0-9._-]/g,'').toLowerCase()||'googleuser';
@@ -1134,7 +1204,14 @@ function signupWithGoogle(){
   }
   document.getElementById('lemail').value=user.email;
   document.getElementById('lpass').value='';
-  toast('Google account ready. Leave password empty and sign in.','ok');
+  closeM();
+  if(user.auth==='google'||user.pass===''){
+    doLogin();
+    toast('Signed in with Google','ok');
+    return;
+  }
+  if(googleFlow==='signup')toast('Email already exists with password. Use sign in.','err');
+  else toast('Account found. Enter password to continue.','ok');
 }
 function changePassword(){
   const curr=document.getElementById('cp-current')?.value,nw=document.getElementById('cp-new')?.value,conf=document.getElementById('cp-confirm')?.value;
