@@ -34,7 +34,7 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
 /* ═══ LOGIN ═══ */
 #page-login{
   align-items:center;justify-content:center;
-  background:radial-gradient(ellipse 90% 70% at 50% -10%,rgba(79,124,255,.18) 0%,transparent 60%),linear-gradient(180deg,#020617,#0b1220 55%,#101827 100%);
+  background:radial-gradient(ellipse 90% 70% at 50% -10%,rgba(220,38,38,.28) 0%,transparent 60%),linear-gradient(180deg,#050505,#0b090a 55%,#17090a 100%);
   position:relative;overflow:hidden;
 }
 .login-wrap{width:100%;max-width:460px;padding:1.5rem;position:relative;z-index:1}
@@ -43,34 +43,34 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
 .lsub{font-family:'Syne',sans-serif;font-size:34px;color:#fff;line-height:1.1;margin-top:0;letter-spacing:-.03em}
 .ltag{font-size:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:.14em;margin-top:4px}
 .login-card{
-  background:linear-gradient(180deg,#0a1120,#0b1424);
-  border:1px solid rgba(148,163,184,.28);
+  background:linear-gradient(180deg,#140809,#1b0a0b);
+  border:1px solid rgba(248,113,113,.34);
   border-radius:14px;padding:1.4rem 1.2rem 1.1rem;
-  box-shadow:0 16px 42px rgba(2,6,23,.45);
+  box-shadow:0 16px 42px rgba(39,4,5,.55);
 }
 .login-card h2{font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:700;color:#f8fafc;margin-bottom:.35rem;text-align:center}
-.login-card .sub{font-size:1rem;color:#94a3b8;margin-bottom:1.2rem;text-align:center}
+.login-card .sub{font-size:1rem;color:#fecaca;margin-bottom:1.2rem;text-align:center}
 .lerr{background:rgba(127,29,29,.45);border:1px solid rgba(248,113,113,.45);border-radius:8px;padding:.55rem .9rem;font-size:.82rem;color:#fecaca;margin-bottom:.9rem;display:none;align-items:center;gap:6px}
 .lerr::before{content:'✕';font-weight:700}
 .lerr.show{display:flex}
 .fg{margin-bottom:.95rem}
-.fg label{display:block;font-size:.82rem;font-weight:600;color:#e2e8f0;letter-spacing:.02em;margin-bottom:.45rem}
+.fg label{display:block;font-size:.82rem;font-weight:600;color:#fee2e2;letter-spacing:.02em;margin-bottom:.45rem}
 .fg input,.fg select{
-  width:100%;background:#0f172a;border:1px solid #334155;border-radius:10px;
+  width:100%;background:#12090a;border:1px solid #7f1d1d;border-radius:10px;
   padding:.74rem .92rem;font-size:1rem;color:#f8fafc;outline:none;
   transition:border-color .2s,box-shadow .2s;
 }
-.fg input:focus,.fg select:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.2)}
+.fg input:focus,.fg select:focus{border-color:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,.22)}
 .btn-login{
-  width:100%;background:#16a34a;color:#fff;font-family:'Syne',sans-serif;
+  width:100%;background:#dc2626;color:#fff;font-family:'Syne',sans-serif;
   font-weight:700;font-size:1.06rem;padding:.82rem;border-radius:10px;
   transition:all .2s;letter-spacing:.01em;
-  box-shadow:0 8px 20px rgba(22,163,74,.35);
+  box-shadow:0 8px 20px rgba(220,38,38,.35);
 }
-.btn-login:hover{background:#15803d;box-shadow:0 10px 24px rgba(22,163,74,.4);transform:translateY(-1px)}
+.btn-login:hover{background:#b91c1c;box-shadow:0 10px 24px rgba(220,38,38,.4);transform:translateY(-1px)}
 .btn-login:active{transform:translateY(0)}
 .lfoot{text-align:center;margin-top:1.05rem;font-size:.98rem;color:#cbd5e1}
-.lfoot a{color:#60a5fa;cursor:pointer;font-weight:500}
+.lfoot a{color:#f87171;cursor:pointer;font-weight:500}
 .lfoot a:hover{text-decoration:underline}
 .lor{display:flex;align-items:center;gap:10px;margin:12px 0 10px}
 .lor::before,.lor::after{content:'';flex:1;height:1px;background:#334155}
@@ -84,7 +84,7 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
 .btn-social:hover{background:#273549;border-color:#475569}
 .btn-social .gmark{font-weight:800;color:#ea4335;letter-spacing:-.02em}
 .pw-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:.45rem}
-.pw-row .fp{font-size:.9rem;color:#60a5fa;cursor:pointer}
+.pw-row .fp{font-size:.9rem;color:#f87171;cursor:pointer}
 .pw-row .fp:hover{text-decoration:underline}
 .gchooser{max-width:980px;background:#0b1220;border:1px solid #1f2937;padding:0;overflow:hidden}
 .ghead{height:62px;padding:0 18px;border-bottom:1px solid #1f2937;display:flex;align-items:center;gap:10px;color:#f8fafc;font-weight:600}
@@ -543,11 +543,6 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
       </div>
       <button class="btn-login" onclick="doLogin()">
         Sign in
-      </button>
-      <div class="lor"><span>or</span></div>
-      <button class="btn-social" onclick="signupWithGoogle()">
-        <span class="gmark">G</span>
-        Continue with Google
       </button>
       <p class="lfoot">
         New to SalesOS? <a onclick="openM('createAccount')">Create an account</a>
