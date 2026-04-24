@@ -3,20 +3,27 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Sales Management System API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: sales
+    description: Sales records
+  - name: customers
+    description: Customers
+  - name: analytics
+    description: Analytics & dashboard
+  - name: reports
+    description: Reports
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +31,357 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /sales:
+    get:
+      operationId: listSales
+      tags: [sales]
+      summary: List sales
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, completed, cancelled]
+        - in: query
+          name: customerId
+          schema:
+            type: integer
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: minPrice
+          schema:
+            type: number
+        - in: query
+          name: maxPrice
+          schema:
+            type: number
+        - in: query
+          name: search
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of sales
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Sale"
+    post:
+      operationId: createSale
+      tags: [sales]
+      summary: Create a sale
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaleInput"
+      responses:
+        "201":
+          description: Sale created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sale"
+  /sales/{id}:
+    get:
+      operationId: getSale
+      tags: [sales]
+      summary: Get sale by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Sale
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sale"
+    patch:
+      operationId: updateSale
+      tags: [sales]
+      summary: Update a sale
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaleInput"
+      responses:
+        "200":
+          description: Updated sale
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sale"
+    delete:
+      operationId: deleteSale
+      tags: [sales]
+      summary: Delete a sale
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List customers
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Customer"
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      summary: Create a customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerInput"
+      responses:
+        "201":
+          description: Customer created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+  /customers/{id}:
+    get:
+      operationId: getCustomer
+      tags: [customers]
+      summary: Get a customer with purchase history
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerDetail"
+    patch:
+      operationId: updateCustomer
+      tags: [customers]
+      summary: Update a customer
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerInput"
+      responses:
+        "200":
+          description: Updated customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+    delete:
+      operationId: deleteCustomer
+      tags: [customers]
+      summary: Delete a customer
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /analytics/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [analytics]
+      summary: Dashboard KPIs
+      responses:
+        "200":
+          description: Dashboard KPI summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+  /analytics/sales-trend:
+    get:
+      operationId: getSalesTrend
+      tags: [analytics]
+      summary: Monthly revenue trend
+      parameters:
+        - in: query
+          name: months
+          schema:
+            type: integer
+            default: 12
+      responses:
+        "200":
+          description: Sales trend by month
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrendPoint"
+  /analytics/category-distribution:
+    get:
+      operationId: getCategoryDistribution
+      tags: [analytics]
+      summary: Sales distribution by category
+      responses:
+        "200":
+          description: Category distribution
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategorySlice"
+  /analytics/top-products:
+    get:
+      operationId: getTopProducts
+      tags: [analytics]
+      summary: Top selling products
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 5
+      responses:
+        "200":
+          description: Top products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopProduct"
+  /analytics/recent-sales:
+    get:
+      operationId: getRecentSales
+      tags: [analytics]
+      summary: Recent sales activity
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 8
+      responses:
+        "200":
+          description: Recent sales
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Sale"
+  /analytics/forecast:
+    get:
+      operationId: getSalesForecast
+      tags: [analytics]
+      summary: AI-based sales forecast (next N months)
+      parameters:
+        - in: query
+          name: months
+          schema:
+            type: integer
+            default: 3
+      responses:
+        "200":
+          description: Forecasted revenue per month
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ForecastPoint"
+
+  /reports/monthly:
+    get:
+      operationId: getMonthlyReport
+      tags: [reports]
+      summary: Monthly report breakdown
+      parameters:
+        - in: query
+          name: year
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Monthly report rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReportRow"
+  /reports/yearly:
+    get:
+      operationId: getYearlyReport
+      tags: [reports]
+      summary: Yearly report breakdown
+      responses:
+        "200":
+          description: Yearly report rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReportRow"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +389,227 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    Sale:
+      type: object
+      properties:
+        id:
+          type: integer
+        productName:
+          type: string
+        category:
+          type: string
+        price:
+          type: number
+        quantity:
+          type: integer
+        total:
+          type: number
+        status:
+          type: string
+          enum: [pending, completed, cancelled]
+        saleDate:
+          type: string
+          format: date-time
+        customerId:
+          type: ["integer", "null"]
+        customerName:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - productName
+        - category
+        - price
+        - quantity
+        - total
+        - status
+        - saleDate
+        - createdAt
+        - updatedAt
+
+    SaleInput:
+      type: object
+      properties:
+        productName:
+          type: string
+          minLength: 1
+        category:
+          type: string
+          minLength: 1
+        price:
+          type: number
+          minimum: 0
+        quantity:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum: [pending, completed, cancelled]
+        saleDate:
+          type: string
+          format: date-time
+        customerId:
+          type: ["integer", "null"]
+        notes:
+          type: ["string", "null"]
+      required:
+        - productName
+        - category
+        - price
+        - quantity
+        - status
+        - saleDate
+
+    Customer:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        company:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        totalSpent:
+          type: number
+        orderCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - email
+        - totalSpent
+        - orderCount
+        - createdAt
+        - updatedAt
+
+    CustomerDetail:
+      allOf:
+        - $ref: "#/components/schemas/Customer"
+        - type: object
+          properties:
+            sales:
+              type: array
+              items:
+                $ref: "#/components/schemas/Sale"
+          required: [sales]
+
+    CustomerInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          minLength: 1
+        phone:
+          type: ["string", "null"]
+        company:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+      required: [name, email]
+
+    DashboardSummary:
+      type: object
+      properties:
+        totalRevenue:
+          type: number
+        monthlyRevenue:
+          type: number
+        monthlySalesCount:
+          type: integer
+        activeCustomers:
+          type: integer
+        revenueGrowthPercent:
+          type: number
+        averageOrderValue:
+          type: number
+        pendingOrders:
+          type: integer
+      required:
+        - totalRevenue
+        - monthlyRevenue
+        - monthlySalesCount
+        - activeCustomers
+        - revenueGrowthPercent
+        - averageOrderValue
+        - pendingOrders
+
+    TrendPoint:
+      type: object
+      properties:
+        period:
+          type: string
+        revenue:
+          type: number
+        orders:
+          type: integer
+      required: [period, revenue, orders]
+
+    CategorySlice:
+      type: object
+      properties:
+        category:
+          type: string
+        revenue:
+          type: number
+        orders:
+          type: integer
+      required: [category, revenue, orders]
+
+    TopProduct:
+      type: object
+      properties:
+        productName:
+          type: string
+        quantitySold:
+          type: integer
+        revenue:
+          type: number
+      required: [productName, quantitySold, revenue]
+
+    ForecastPoint:
+      type: object
+      properties:
+        period:
+          type: string
+        projectedRevenue:
+          type: number
+      required: [period, projectedRevenue]
+
+    ReportRow:
+      type: object
+      properties:
+        period:
+          type: string
+        revenue:
+          type: number
+        orders:
+          type: integer
+        averageOrderValue:
+          type: number
+        growthPercent:
+          type: number
+      required: [period, revenue, orders, averageOrderValue, growthPercent]

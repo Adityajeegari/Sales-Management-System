@@ -1,0 +1,153 @@
+You are a senior full-stack engineer tasked with building a production-grade Sales Management System web application that looks and feels like a Google product (clean, fast, minimal, highly usable).
+
+Build a COMPLETE, DEPLOYABLE application — not a demo.
+
+---
+
+🎯 CORE OBJECTIVE:
+Design and implement a scalable Sales Management System used by small-to-medium businesses to manage sales, customers, and analytics in real-time.
+
+---
+
+🔐 AUTHENTICATION (MANDATORY):
+
+* Email/password login & signup with validation
+* Google OAuth login (use Firebase Auth or Passport.js)
+* Password hashing (bcrypt)
+* JWT-based session handling
+* Protected routes (dashboard accessible only after login)
+* Persistent login (remember user)
+
+---
+
+🧠 SYSTEM ARCHITECTURE:
+
+* Follow MVC or modular architecture
+* Separate frontend and backend
+* RESTful API design
+* Use environment variables for secrets
+
+---
+
+⚙️ TECH STACK:
+Frontend:
+
+* React (with hooks)
+* Tailwind CSS (Google-like clean UI)
+* Axios for API calls
+
+Backend:
+
+* Node.js + Express
+
+Database:
+
+* MongoDB (Mongoose schemas)
+
+---
+
+📊 DASHBOARD (HIGH QUALITY UI):
+
+* Sidebar (Dashboard, Orders, Customers, Reports, Settings)
+* Top navbar (profile, logout)
+* KPI cards:
+
+  * Total Revenue
+  * Monthly Sales
+  * Active Customers
+* Charts (use Chart.js or Recharts):
+
+  * Sales trend (line chart)
+  * Category distribution (pie chart)
+
+---
+
+📦 SALES MODULE:
+
+* Create, update, delete sales
+* Fields: product name, price, quantity, date, status
+* Auto-calculate total revenue
+* Filter by date, status, price range
+
+---
+
+👥 CUSTOMER MODULE:
+
+* Add/edit/delete customers
+* Store: name, email, phone, purchase history
+* Link customers to sales
+
+---
+
+📈 REPORTS & ANALYTICS:
+
+* Monthly and yearly reports
+* Revenue growth %
+* Top-selling products
+* Export to CSV
+
+---
+
+🎨 UI/UX (VERY IMPORTANT):
+
+* Inspired by Google Material Design
+* Clean spacing, soft shadows, rounded cards
+* Smooth transitions
+* Fully responsive (mobile-first)
+* Loading skeletons & error states
+
+---
+
+🔒 SECURITY:
+
+* Input validation (frontend + backend)
+* Prevent XSS & injection
+* Secure API routes
+
+---
+
+📁 FOLDER STRUCTURE:
+Provide clear structure like:
+
+/client
+/components
+/pages
+/services
+/server
+/controllers
+/models
+/routes
+/middleware
+
+---
+
+🚀 OUTPUT REQUIREMENTS:
+
+* Full frontend + backend code
+* MongoDB schema design
+* API routes list
+* Step-by-step setup instructions
+* .env example
+* Sample test data
+
+---
+
+🔥 BONUS (HIGHLY RECOMMENDED):
+
+* Role-based access (Admin/User)
+* Dark mode toggle
+* Real-time updates (Socket.io)
+* AI-based sales prediction (basic model or mock API)
+
+---
+
+⚠️ IMPORTANT:
+
+* Do NOT give partial code
+* Do NOT simplify UI
+* Code must be clean, modular, and production-ready
+* Prioritize real-world usability over basic examples
+
+---
+
+Goal: This project should be strong enough to showcase on a resume and impress recruiters for internships or entry-level software roles.
