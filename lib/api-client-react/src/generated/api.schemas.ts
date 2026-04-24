@@ -136,6 +136,39 @@ export interface ReportRow {
   growthPercent: number;
 }
 
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
+
+export const UserRole = {
+  admin: "admin",
+  manager: "manager",
+  staff: "staff",
+} as const;
+
+export interface CurrentUser {
+  id: number;
+  clerkUserId: string;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  name?: string | null;
+  role: UserRole;
+}
+
+export interface TeamMember {
+  id: number;
+  clerkUserId: string;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  name?: string | null;
+  role: UserRole;
+  createdAt: string;
+}
+
+export interface RoleUpdate {
+  role: UserRole;
+}
+
 export type ListSalesParams = {
   status?: ListSalesStatus;
   customerId?: number;

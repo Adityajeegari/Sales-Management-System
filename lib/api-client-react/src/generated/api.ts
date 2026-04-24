@@ -18,6 +18,7 @@ import type {
 
 import type {
   CategorySlice,
+  CurrentUser,
   Customer,
   CustomerDetail,
   CustomerInput,
@@ -32,8 +33,10 @@ import type {
   ListCustomersParams,
   ListSalesParams,
   ReportRow,
+  RoleUpdate,
   Sale,
   SaleInput,
+  TeamMember,
   TopProduct,
   TrendPoint,
 } from "./api.schemas";
@@ -1689,3 +1692,240 @@ export function useGetYearlyReport<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Get the currently signed-in user with their role
+ */
+export const getGetCurrentUserUrl = () => {
+  return `/api/me`;
+};
+
+export const getCurrentUser = async (
+  options?: RequestInit,
+): Promise<CurrentUser> => {
+  return customFetch<CurrentUser>(getGetCurrentUserUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCurrentUserQueryKey = () => {
+  return [`/api/me`] as const;
+};
+
+export const getGetCurrentUserQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCurrentUser>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getCurrentUser>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCurrentUserQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCurrentUser>>> = ({
+    signal,
+  }) => getCurrentUser({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCurrentUser>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCurrentUserQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCurrentUser>>
+>;
+export type GetCurrentUserQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get the currently signed-in user with their role
+ */
+
+export function useGetCurrentUser<
+  TData = Awaited<ReturnType<typeof getCurrentUser>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getCurrentUser>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCurrentUserQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List team members and their roles (admin only)
+ */
+export const getListTeamMembersUrl = () => {
+  return `/api/users`;
+};
+
+export const listTeamMembers = async (
+  options?: RequestInit,
+): Promise<TeamMember[]> => {
+  return customFetch<TeamMember[]>(getListTeamMembersUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListTeamMembersQueryKey = () => {
+  return [`/api/users`] as const;
+};
+
+export const getListTeamMembersQueryOptions = <
+  TData = Awaited<ReturnType<typeof listTeamMembers>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listTeamMembers>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListTeamMembersQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listTeamMembers>>> = ({
+    signal,
+  }) => listTeamMembers({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listTeamMembers>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListTeamMembersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listTeamMembers>>
+>;
+export type ListTeamMembersQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List team members and their roles (admin only)
+ */
+
+export function useListTeamMembers<
+  TData = Awaited<ReturnType<typeof listTeamMembers>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listTeamMembers>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListTeamMembersQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update a team member's role (admin only)
+ */
+export const getUpdateMemberRoleUrl = (id: number) => {
+  return `/api/users/${id}/role`;
+};
+
+export const updateMemberRole = async (
+  id: number,
+  roleUpdate: RoleUpdate,
+  options?: RequestInit,
+): Promise<TeamMember> => {
+  return customFetch<TeamMember>(getUpdateMemberRoleUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(roleUpdate),
+  });
+};
+
+export const getUpdateMemberRoleMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateMemberRole>>,
+    TError,
+    { id: number; data: BodyType<RoleUpdate> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateMemberRole>>,
+  TError,
+  { id: number; data: BodyType<RoleUpdate> },
+  TContext
+> => {
+  const mutationKey = ["updateMemberRole"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateMemberRole>>,
+    { id: number; data: BodyType<RoleUpdate> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateMemberRole(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateMemberRoleMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateMemberRole>>
+>;
+export type UpdateMemberRoleMutationBody = BodyType<RoleUpdate>;
+export type UpdateMemberRoleMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a team member's role (admin only)
+ */
+export const useUpdateMemberRole = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateMemberRole>>,
+    TError,
+    { id: number; data: BodyType<RoleUpdate> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateMemberRole>>,
+  TError,
+  { id: number; data: BodyType<RoleUpdate> },
+  TContext
+> => {
+  return useMutation(getUpdateMemberRoleMutationOptions(options));
+};

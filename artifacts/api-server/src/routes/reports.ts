@@ -6,11 +6,12 @@ import {
   GetMonthlyReportResponse,
   GetYearlyReportResponse,
 } from "@workspace/api-zod";
-import { requireAuth } from "../middlewares/requireAuth";
+import { requireRole } from "../lib/auth";
+const requireViewer = requireRole("admin", "manager", "staff");
 
 const router: IRouter = Router();
 
-router.use(requireAuth);
+router.use(requireViewer);
 
 interface AggRow {
   period: string;

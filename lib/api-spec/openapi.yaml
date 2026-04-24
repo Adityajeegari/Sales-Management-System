@@ -18,6 +18,8 @@ tags:
     description: Analytics & dashboard
   - name: reports
     description: Reports
+  - name: users
+    description: User & role management
 paths:
   /healthz:
     get:
@@ -382,6 +384,59 @@ paths:
                 items:
                   $ref: "#/components/schemas/ReportRow"
 
+  /me:
+    get:
+      operationId: getCurrentUser
+      tags: [users]
+      summary: Get the currently signed-in user with their role
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentUser"
+
+  /users:
+    get:
+      operationId: listTeamMembers
+      tags: [users]
+      summary: List team members and their roles (admin only)
+      responses:
+        "200":
+          description: List of team members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TeamMember"
+
+  /users/{id}/role:
+    patch:
+      operationId: updateMemberRole
+      tags: [users]
+      summary: Update a team member's role (admin only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleUpdate"
+      responses:
+        "200":
+          description: Updated team member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamMember"
+
 components:
   schemas:
     HealthStatus:
@@ -613,3 +668,47 @@ components:
         growthPercent:
           type: number
       required: [period, revenue, orders, averageOrderValue, growthPercent]
+
+    UserRole:
+      type: string
+      enum: [admin, manager, staff]
+
+    CurrentUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        clerkUserId:
+          type: string
+        email:
+          type: ["string", "null"]
+        name:
+          type: ["string", "null"]
+        role:
+          $ref: "#/components/schemas/UserRole"
+      required: [id, clerkUserId, role]
+
+    TeamMember:
+      type: object
+      properties:
+        id:
+          type: integer
+        clerkUserId:
+          type: string
+        email:
+          type: ["string", "null"]
+        name:
+          type: ["string", "null"]
+        role:
+          $ref: "#/components/schemas/UserRole"
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, clerkUserId, role, createdAt]
+
+    RoleUpdate:
+      type: object
+      properties:
+        role:
+          $ref: "#/components/schemas/UserRole"
+      required: [role]

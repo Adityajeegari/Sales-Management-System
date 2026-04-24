@@ -12,14 +12,15 @@ import {
   UpdateCustomerResponse,
   DeleteCustomerParams,
 } from "@workspace/api-zod";
-import { requireAuth } from "../middlewares/requireAuth";
+import { requireRole } from "../lib/auth";
 import { serializeCustomer, serializeSale } from "../lib/serializers";
 
 const router: IRouter = Router();
 
-router.use(requireAuth);
+const requireViewer = requireRole("admin", "manager", "staff");
+const requireEditor = requireRole("admin", "manager");
 
-router.get("/customers", async (req, res): Promise<void> => {
+router.get("/customers", requireViewer, async (req, res): Promise<void> => {
   const parsed = ListCustomersQueryParams.safeParse(req.query);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -56,7 +57,7 @@ router.get("/customers", async (req, res): Promise<void> => {
   res.json(ListCustomersResponse.parse(data));
 });
 
-router.post("/customers", async (req, res): Promise<void> => {
+router.post("/customers", requireEditor, async (req, res): Promise<void> => {
   const parsed = CreateCustomerBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -76,7 +77,7 @@ router.post("/customers", async (req, res): Promise<void> => {
   res.status(201).json(serializeCustomer(customer, 0, 0));
 });
 
-router.get("/customers/:id", async (req, res): Promise<void> => {
+router.get("/customers/:id", requireViewer, async (req, res): Promise<void> => {
   const params = GetCustomerParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -106,7 +107,7 @@ router.get("/customers/:id", async (req, res): Promise<void> => {
   res.json(GetCustomerResponse.parse(data));
 });
 
-router.patch("/customers/:id", async (req, res): Promise<void> => {
+router.patch("/customers/:id", requireEditor, async (req, res): Promise<void> => {
   const params = UpdateCustomerParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -153,7 +154,7 @@ router.patch("/customers/:id", async (req, res): Promise<void> => {
   );
 });
 
-router.delete("/customers/:id", async (req, res): Promise<void> => {
+router.delete("/customers/:id", requireEditor, async (req, res): Promise<void> => {
   const params = DeleteCustomerParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });

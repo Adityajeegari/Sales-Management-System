@@ -62,6 +62,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 import { formatCurrency, formatDate } from "@/lib/format";
+import { useCurrentUserRole } from "@/lib/roles";
 
 const STATUS_OPTIONS: SaleInput["status"][] = [
   "pending",
@@ -291,6 +292,7 @@ function SaleDialog({
 
 export default function SalesPage() {
   const qc = useQueryClient();
+  const { canDeleteSales } = useCurrentUserRole();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -467,13 +469,15 @@ export default function SalesPage() {
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleting(s)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        {canDeleteSales && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleting(s)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))

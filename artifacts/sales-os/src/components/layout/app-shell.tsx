@@ -9,11 +9,14 @@ import {
   Menu,
   LogOut,
   Sparkles,
+  ShieldCheck,
 } from "lucide-react";
 import { useClerk, useUser } from "@clerk/react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ROLE_LABELS, useCurrentUserRole } from "@/lib/roles";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +33,7 @@ interface NavItem {
   title: string;
   href: string;
   icon: React.ElementType;
+  adminOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -37,6 +41,7 @@ const navItems: NavItem[] = [
   { title: "Sales", href: "/sales", icon: Receipt },
   { title: "Customers", href: "/customers", icon: Users },
   { title: "Reports", href: "/reports", icon: PieChart },
+  { title: "Team", href: "/team", icon: ShieldCheck, adminOnly: true },
   { title: "Settings", href: "/settings", icon: SettingsIcon },
 ];
 
@@ -55,10 +60,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { signOut } = useClerk();
   const { user } = useUser();
+  const { role, isAdmin } = useCurrentUserRole();
+
+  const visibleNav = navItems.filter((item) => !item.adminOnly || isAdmin);
 
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
     <nav className="grid gap-0.5 px-3">
-      {navItems.map((item) => {
+      {visibleNav.map((item) => {
         const Icon = item.icon;
         const isActive =
           location === item.href || location.startsWith(item.href + "/");
@@ -112,6 +120,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {user?.primaryEmailAddress?.emailAddress}
               </p>
             </div>
+            {role && (
+              <Badge variant="outline" className="capitalize">
+                {ROLE_LABELS[role]}
+              </Badge>
+            )}
           </div>
         </div>
       </aside>

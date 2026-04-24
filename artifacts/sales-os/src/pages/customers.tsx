@@ -49,6 +49,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 import { formatCurrency, formatNumber } from "@/lib/format";
+import { useCurrentUserRole } from "@/lib/roles";
 
 function getInitials(name: string): string {
   return name
@@ -194,6 +195,7 @@ function CustomerDialog({
 
 export default function CustomersPage() {
   const qc = useQueryClient();
+  const { canManageCustomers } = useCurrentUserRole();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Customer | null>(null);
@@ -230,15 +232,17 @@ export default function CustomersPage() {
             Every account you've worked with.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditing(null);
-            setDialogOpen(true);
-          }}
-        >
-          <Plus className="mr-1 h-4 w-4" />
-          New customer
-        </Button>
+        {canManageCustomers && (
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setDialogOpen(true);
+            }}
+          >
+            <Plus className="mr-1 h-4 w-4" />
+            New customer
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -320,23 +324,27 @@ export default function CustomersPage() {
                             <ArrowRight className="ml-1 h-3.5 w-3.5" />
                           </Link>
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setEditing(c);
-                            setDialogOpen(true);
-                          }}
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleting(c)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        {canManageCustomers && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setEditing(c);
+                                setDialogOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDeleting(c)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))

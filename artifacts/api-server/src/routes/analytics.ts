@@ -13,12 +13,13 @@ import {
   GetSalesForecastQueryParams,
   GetSalesForecastResponse,
 } from "@workspace/api-zod";
-import { requireAuth } from "../middlewares/requireAuth";
+import { requireRole } from "../lib/auth";
+const requireViewer = requireRole("admin", "manager", "staff");
 import { serializeSale } from "../lib/serializers";
 
 const router: IRouter = Router();
 
-router.use(requireAuth);
+router.use(requireViewer);
 
 function startOfMonth(d: Date): Date {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));

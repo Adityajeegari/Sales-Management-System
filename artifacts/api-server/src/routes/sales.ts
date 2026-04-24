@@ -12,14 +12,16 @@ import {
   UpdateSaleResponse,
   DeleteSaleParams,
 } from "@workspace/api-zod";
-import { requireAuth } from "../middlewares/requireAuth";
+import { requireRole } from "../lib/auth";
 import { serializeSale } from "../lib/serializers";
 
 const router: IRouter = Router();
 
-router.use(requireAuth);
+const requireViewer = requireRole("admin", "manager", "staff");
+const requireEditor = requireRole("admin", "manager", "staff");
+const requireDeleter = requireRole("admin", "manager");
 
-router.get("/sales", async (req, res): Promise<void> => {
+router.get("/sales", requireViewer, async (req, res): Promise<void> => {
   const parsed = ListSalesQueryParams.safeParse(req.query);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -52,7 +54,7 @@ router.get("/sales", async (req, res): Promise<void> => {
   res.json(ListSalesResponse.parse(data));
 });
 
-router.post("/sales", async (req, res): Promise<void> => {
+router.post("/sales", requireEditor, async (req, res): Promise<void> => {
   const parsed = CreateSaleBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -86,7 +88,7 @@ router.post("/sales", async (req, res): Promise<void> => {
   res.status(201).json(GetSaleResponse.parse(serializeSale(sale, customerName)));
 });
 
-router.get("/sales/:id", async (req, res): Promise<void> => {
+router.get("/sales/:id", requireViewer, async (req, res): Promise<void> => {
   const params = GetSaleParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -108,7 +110,7 @@ router.get("/sales/:id", async (req, res): Promise<void> => {
   res.json(GetSaleResponse.parse(serializeSale(row.sale, row.customerName ?? null)));
 });
 
-router.patch("/sales/:id", async (req, res): Promise<void> => {
+router.patch("/sales/:id", requireEditor, async (req, res): Promise<void> => {
   const params = UpdateSaleParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -151,7 +153,7 @@ router.patch("/sales/:id", async (req, res): Promise<void> => {
   res.json(UpdateSaleResponse.parse(serializeSale(sale, customerName)));
 });
 
-router.delete("/sales/:id", async (req, res): Promise<void> => {
+router.delete("/sales/:id", requireDeleter, async (req, res): Promise<void> => {
   const params = DeleteSaleParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });

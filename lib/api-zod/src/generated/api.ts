@@ -362,3 +362,47 @@ export const GetYearlyReportResponseItem = zod.object({
   growthPercent: zod.number(),
 });
 export const GetYearlyReportResponse = zod.array(GetYearlyReportResponseItem);
+
+/**
+ * @summary Get the currently signed-in user with their role
+ */
+export const GetCurrentUserResponse = zod.object({
+  id: zod.number(),
+  clerkUserId: zod.string(),
+  email: zod.string().nullish(),
+  name: zod.string().nullish(),
+  role: zod.enum(["admin", "manager", "staff"]),
+});
+
+/**
+ * @summary List team members and their roles (admin only)
+ */
+export const ListTeamMembersResponseItem = zod.object({
+  id: zod.number(),
+  clerkUserId: zod.string(),
+  email: zod.string().nullish(),
+  name: zod.string().nullish(),
+  role: zod.enum(["admin", "manager", "staff"]),
+  createdAt: zod.coerce.date(),
+});
+export const ListTeamMembersResponse = zod.array(ListTeamMembersResponseItem);
+
+/**
+ * @summary Update a team member's role (admin only)
+ */
+export const UpdateMemberRoleParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateMemberRoleBody = zod.object({
+  role: zod.enum(["admin", "manager", "staff"]),
+});
+
+export const UpdateMemberRoleResponse = zod.object({
+  id: zod.number(),
+  clerkUserId: zod.string(),
+  email: zod.string().nullish(),
+  name: zod.string().nullish(),
+  role: zod.enum(["admin", "manager", "staff"]),
+  createdAt: zod.coerce.date(),
+});
