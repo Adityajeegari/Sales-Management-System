@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -58,6 +59,20 @@ function getInitials(name: string): string {
     .slice(0, 2)
     .join("")
     .toUpperCase();
+}
+
+function SegmentBadge({ segment }: { segment: Customer["segment"] }) {
+  if (segment === "vip") {
+    return (
+      <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 hover:bg-amber-500/20">
+        VIP
+      </Badge>
+    );
+  }
+  if (segment === "new") {
+    return <Badge variant="outline">New</Badge>;
+  }
+  return <Badge variant="secondary">Regular</Badge>;
 }
 
 function CustomerDialog({
@@ -265,6 +280,7 @@ export default function CustomersPage() {
                 <TableRow>
                   <TableHead>Customer</TableHead>
                   <TableHead>Company</TableHead>
+                  <TableHead>Segment</TableHead>
                   <TableHead className="text-right">Orders</TableHead>
                   <TableHead className="text-right">Lifetime spend</TableHead>
                   <TableHead className="w-[140px]" />
@@ -274,7 +290,7 @@ export default function CustomersPage() {
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell colSpan={5}>
+                      <TableCell colSpan={6}>
                         <Skeleton className="h-8 w-full" />
                       </TableCell>
                     </TableRow>
@@ -282,7 +298,7 @@ export default function CustomersPage() {
                 ) : (customers ?? []).length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={5}
+                      colSpan={6}
                       className="py-12 text-center text-sm text-muted-foreground"
                     >
                       No customers yet. Add your first one to get started.
@@ -310,6 +326,9 @@ export default function CustomersPage() {
                         {c.company ?? (
                           <span className="text-muted-foreground">—</span>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <SegmentBadge segment={c.segment} />
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {formatNumber(c.orderCount)}

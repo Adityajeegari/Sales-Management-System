@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Download, ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { Download, FileText, ArrowDownRight, ArrowUpRight } from "lucide-react";
 
 import {
   useGetMonthlyReport,
   useGetYearlyReport,
+  useGetEmployeePerformance,
+  useGetProfitLoss,
 } from "@workspace/api-client-react";
 
 import { Button } from "@/components/ui/button";
@@ -31,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { downloadCSV, toCSV } from "@/lib/csv";
+import { downloadTableAsPdf } from "@/lib/pdf";
 import {
   formatCurrency,
   formatMonthLabel,
@@ -70,8 +73,10 @@ export default function ReportsPage() {
   const [year, setYear] = useState<number>(CURRENT_YEAR);
   const monthlyQ = useGetMonthlyReport({ year });
   const yearlyQ = useGetYearlyReport();
+  const empQ = useGetEmployeePerformance();
+  const plQ = useGetProfitLoss({ year });
 
-  const exportMonthly = () => {
+  const exportMonthlyCsv = () => {
     const rows = (monthlyQ.data ?? []).map((r) => ({
       period: formatMonthLabel(r.period),
       revenue: r.revenue.toFixed(2),
@@ -89,7 +94,22 @@ export default function ReportsPage() {
     downloadCSV(`monthly-report-${year}.csv`, csv);
   };
 
-  const exportYearly = () => {
+  const exportMonthlyPdf = () => {
+    downloadTableAsPdf(
+      `Monthly Report — ${year}`,
+      ["Month", "Revenue", "Orders", "Avg order", "Growth %"],
+      (monthlyQ.data ?? []).map((r) => [
+        formatMonthLabel(r.period),
+        formatCurrency(r.revenue),
+        r.orders,
+        formatCurrency(r.averageOrderValue, true),
+        `${r.growthPercent.toFixed(1)}%`,
+      ]),
+      `monthly-report-${year}.pdf`,
+    );
+  };
+
+  const exportYearlyCsv = () => {
     const rows = (yearlyQ.data ?? []).map((r) => ({
       period: r.period,
       revenue: r.revenue.toFixed(2),
@@ -107,6 +127,37 @@ export default function ReportsPage() {
     downloadCSV(`yearly-report.csv`, csv);
   };
 
+  const exportEmployeeCsv = () => {
+    const rows = (empQ.data ?? []).map((r) => ({
+      name: r.name ?? r.email ?? "Unknown",
+      salesCount: r.salesCount,
+      revenue: r.revenue.toFixed(2),
+      averageOrderValue: r.averageOrderValue.toFixed(2),
+    }));
+    const csv = toCSV(rows, [
+      { key: "name", label: "Teammate" },
+      { key: "salesCount", label: "Sales" },
+      { key: "revenue", label: "Revenue" },
+      { key: "averageOrderValue", label: "Avg order" },
+    ]);
+    downloadCSV("employee-performance.csv", csv);
+  };
+
+  const exportPlPdf = () => {
+    downloadTableAsPdf(
+      `Profit & Loss — ${year}`,
+      ["Month", "Revenue", "Cost", "Profit", "Margin"],
+      (plQ.data ?? []).map((r) => [
+        formatMonthLabel(r.period),
+        formatCurrency(r.revenue),
+        formatCurrency(r.cost),
+        formatCurrency(r.profit),
+        `${r.marginPercent.toFixed(1)}%`,
+      ]),
+      `profit-loss-${year}.pdf`,
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -114,7 +165,7 @@ export default function ReportsPage() {
           Reports
         </h1>
         <p className="text-sm text-muted-foreground">
-          Drill into your sales by month or year. Export anything to CSV.
+          Drill into your sales by month or year. Export anything to CSV or PDF.
         </p>
       </div>
 
@@ -122,13 +173,15 @@ export default function ReportsPage() {
         <TabsList>
           <TabsTrigger value="monthly">Monthly</TabsTrigger>
           <TabsTrigger value="yearly">Yearly</TabsTrigger>
+          <TabsTrigger value="employees">Employees</TabsTrigger>
+          <TabsTrigger value="pl">Profit &amp; Loss</TabsTrigger>
         </TabsList>
 
         <TabsContent value="monthly" className="mt-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Monthly performance</CardTitle>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Select
                   value={String(year)}
                   onValueChange={(v) => setYear(Number(v))}
@@ -147,11 +200,20 @@ export default function ReportsPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={exportMonthly}
+                  onClick={exportMonthlyCsv}
                   disabled={!monthlyQ.data}
                 >
                   <Download className="mr-1 h-3.5 w-3.5" />
-                  Export CSV
+                  CSV
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportMonthlyPdf}
+                  disabled={!monthlyQ.data}
+                >
+                  <FileText className="mr-1 h-3.5 w-3.5" />
+                  PDF
                 </Button>
               </div>
             </CardHeader>
@@ -207,7 +269,7 @@ export default function ReportsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={exportYearly}
+                onClick={exportYearlyCsv}
                 disabled={!yearlyQ.data}
               >
                 <Download className="mr-1 h-3.5 w-3.5" />
@@ -252,6 +314,151 @@ export default function ReportsPage() {
                           </TableCell>
                           <TableCell className="text-right">
                             <GrowthCell value={r.growthPercent} />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="employees" className="mt-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Employee performance</CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportEmployeeCsv}
+                disabled={!empQ.data}
+              >
+                <Download className="mr-1 h-3.5 w-3.5" />
+                Export CSV
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {empQ.isLoading ? (
+                <Skeleton className="h-48 w-full" />
+              ) : (empQ.data ?? []).length === 0 ? (
+                <div className="py-10 text-center text-sm text-muted-foreground">
+                  No teammates have logged sales yet.
+                </div>
+              ) : (
+                <div className="rounded-lg border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Teammate</TableHead>
+                        <TableHead className="text-right">Sales</TableHead>
+                        <TableHead className="text-right">Revenue</TableHead>
+                        <TableHead className="text-right">Avg order</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {(empQ.data ?? []).map((e, idx) => (
+                        <TableRow key={e.clerkUserId ?? `u-${idx}`}>
+                          <TableCell className="font-medium">
+                            {e.name ?? e.email ?? "Unknown"}
+                            {e.email && e.name && (
+                              <p className="text-xs text-muted-foreground">
+                                {e.email}
+                              </p>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right tabular-nums">
+                            {formatNumber(e.salesCount)}
+                          </TableCell>
+                          <TableCell className="text-right tabular-nums">
+                            {formatCurrency(e.revenue)}
+                          </TableCell>
+                          <TableCell className="text-right tabular-nums">
+                            {formatCurrency(e.averageOrderValue, true)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="pl" className="mt-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Profit &amp; Loss</CardTitle>
+              <div className="flex items-center gap-2">
+                <Select
+                  value={String(year)}
+                  onValueChange={(v) => setYear(Number(v))}
+                >
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {YEARS.map((y) => (
+                      <SelectItem key={y} value={String(y)}>
+                        {y}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportPlPdf}
+                  disabled={!plQ.data}
+                >
+                  <FileText className="mr-1 h-3.5 w-3.5" />
+                  PDF
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {plQ.isLoading ? (
+                <Skeleton className="h-64 w-full" />
+              ) : (
+                <div className="rounded-lg border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Month</TableHead>
+                        <TableHead className="text-right">Revenue</TableHead>
+                        <TableHead className="text-right">Cost</TableHead>
+                        <TableHead className="text-right">Profit</TableHead>
+                        <TableHead className="text-right">Margin</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {(plQ.data ?? []).map((r) => (
+                        <TableRow key={r.period}>
+                          <TableCell className="font-medium">
+                            {formatMonthLabel(r.period)}
+                          </TableCell>
+                          <TableCell className="text-right tabular-nums">
+                            {formatCurrency(r.revenue)}
+                          </TableCell>
+                          <TableCell className="text-right tabular-nums text-muted-foreground">
+                            {formatCurrency(r.cost)}
+                          </TableCell>
+                          <TableCell
+                            className={cn(
+                              "text-right tabular-nums font-medium",
+                              r.profit >= 0
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : "text-rose-600 dark:text-rose-400",
+                            )}
+                          >
+                            {formatCurrency(r.profit)}
+                          </TableCell>
+                          <TableCell className="text-right tabular-nums">
+                            {r.revenue > 0
+                              ? `${r.marginPercent.toFixed(1)}%`
+                              : "—"}
                           </TableCell>
                         </TableRow>
                       ))}

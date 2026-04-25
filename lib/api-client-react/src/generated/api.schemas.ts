@@ -9,6 +9,20 @@ export interface HealthStatus {
   status: string;
 }
 
+/**
+ * @nullable
+ */
+export type SalePaymentMethod =
+  | (typeof SalePaymentMethod)[keyof typeof SalePaymentMethod]
+  | null;
+
+export const SalePaymentMethod = {
+  cash: "cash",
+  upi: "upi",
+  card: "card",
+  bank_transfer: "bank_transfer",
+} as const;
+
 export type SaleStatus = (typeof SaleStatus)[keyof typeof SaleStatus];
 
 export const SaleStatus = {
@@ -19,11 +33,20 @@ export const SaleStatus = {
 
 export interface Sale {
   id: number;
+  /** @nullable */
+  invoiceNumber?: string | null;
+  /** @nullable */
+  productId?: number | null;
   productName: string;
   category: string;
   price: number;
   quantity: number;
+  subtotal: number;
+  discountAmount: number;
+  gstAmount: number;
   total: number;
+  /** @nullable */
+  paymentMethod?: SalePaymentMethod;
   status: SaleStatus;
   saleDate: string;
   /** @nullable */
@@ -31,10 +54,28 @@ export interface Sale {
   /** @nullable */
   customerName?: string | null;
   /** @nullable */
+  createdByClerkId?: string | null;
+  /** @nullable */
+  createdByName?: string | null;
+  /** @nullable */
   notes?: string | null;
   createdAt: string;
   updatedAt: string;
 }
+
+/**
+ * @nullable
+ */
+export type SaleInputPaymentMethod =
+  | (typeof SaleInputPaymentMethod)[keyof typeof SaleInputPaymentMethod]
+  | null;
+
+export const SaleInputPaymentMethod = {
+  cash: "cash",
+  upi: "upi",
+  card: "card",
+  bank_transfer: "bank_transfer",
+} as const;
 
 export type SaleInputStatus =
   (typeof SaleInputStatus)[keyof typeof SaleInputStatus];
@@ -46,6 +87,8 @@ export const SaleInputStatus = {
 } as const;
 
 export interface SaleInput {
+  /** @nullable */
+  productId?: number | null;
   /** @minLength 1 */
   productName: string;
   /** @minLength 1 */
@@ -54,6 +97,12 @@ export interface SaleInput {
   price: number;
   /** @minimum 1 */
   quantity: number;
+  /** @minimum 0 */
+  discountAmount?: number;
+  /** @minimum 0 */
+  gstPercent?: number;
+  /** @nullable */
+  paymentMethod?: SaleInputPaymentMethod;
   status: SaleInputStatus;
   saleDate: string;
   /** @nullable */
@@ -61,6 +110,15 @@ export interface SaleInput {
   /** @nullable */
   notes?: string | null;
 }
+
+export type CustomerSegment =
+  (typeof CustomerSegment)[keyof typeof CustomerSegment];
+
+export const CustomerSegment = {
+  vip: "vip",
+  regular: "regular",
+  new: "new",
+} as const;
 
 export interface Customer {
   id: number;
@@ -74,6 +132,7 @@ export interface Customer {
   notes?: string | null;
   totalSpent: number;
   orderCount: number;
+  segment: CustomerSegment;
   createdAt: string;
   updatedAt: string;
 }
@@ -169,6 +228,128 @@ export interface RoleUpdate {
   role: UserRole;
 }
 
+export interface Product {
+  id: number;
+  name: string;
+  sku: string;
+  category: string;
+  /** @nullable */
+  description?: string | null;
+  price: number;
+  costPrice: number;
+  stock: number;
+  lowStockThreshold: number;
+  lowStock: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductInput {
+  /** @minLength 1 */
+  name: string;
+  /** @minLength 1 */
+  sku: string;
+  /** @minLength 1 */
+  category: string;
+  /** @nullable */
+  description?: string | null;
+  /** @minimum 0 */
+  price: number;
+  /** @minimum 0 */
+  costPrice: number;
+  /** @minimum 0 */
+  stock: number;
+  /** @minimum 0 */
+  lowStockThreshold: number;
+}
+
+export interface InvoiceLine {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  amount: number;
+}
+
+export interface Invoice {
+  invoiceNumber: string;
+  issueDate: string;
+  status: string;
+  /** @nullable */
+  paymentMethod?: string | null;
+  sellerName: string;
+  /** @nullable */
+  customerName?: string | null;
+  /** @nullable */
+  customerEmail?: string | null;
+  /** @nullable */
+  customerPhone?: string | null;
+  lines: InvoiceLine[];
+  subtotal: number;
+  discountAmount: number;
+  gstAmount: number;
+  total: number;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export interface TargetInput {
+  /** @minimum 0 */
+  targetAmount: number;
+}
+
+export interface TargetProgress {
+  year: number;
+  month: number;
+  targetAmount: number;
+  achievedAmount: number;
+  progressPercent: number;
+  daysElapsed: number;
+  daysInMonth: number;
+}
+
+export interface Notification {
+  id: number;
+  type: string;
+  title: string;
+  body: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface ActivityEntry {
+  id: number;
+  /** @nullable */
+  actorName?: string | null;
+  /** @nullable */
+  actorEmail?: string | null;
+  action: string;
+  entityType: string;
+  /** @nullable */
+  entityId?: number | null;
+  summary: string;
+  createdAt: string;
+}
+
+export interface EmployeePerformance {
+  /** @nullable */
+  clerkUserId?: string | null;
+  /** @nullable */
+  name?: string | null;
+  /** @nullable */
+  email?: string | null;
+  salesCount: number;
+  revenue: number;
+  averageOrderValue: number;
+}
+
+export interface ProfitLossRow {
+  period: string;
+  revenue: number;
+  cost: number;
+  profit: number;
+  marginPercent: number;
+}
+
 export type ListSalesParams = {
   status?: ListSalesStatus;
   customerId?: number;
@@ -209,5 +390,23 @@ export type GetSalesForecastParams = {
 };
 
 export type GetMonthlyReportParams = {
+  year?: number;
+};
+
+export type ListProductsParams = {
+  search?: string;
+  category?: string;
+  lowStockOnly?: boolean;
+};
+
+export type ListActivityParams = {
+  /**
+   * @minimum 1
+   * @maximum 200
+   */
+  limit?: number;
+};
+
+export type GetProfitLossParams = {
   year?: number;
 };

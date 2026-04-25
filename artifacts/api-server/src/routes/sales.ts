@@ -1,6 +1,12 @@
 import { Router, type IRouter } from "express";
 import { and, desc, eq, gte, ilike, lte, sql } from "drizzle-orm";
-import { db, salesTable, customersTable } from "@workspace/db";
+import {
+  db,
+  salesTable,
+  customersTable,
+  productsTable,
+  userRolesTable,
+} from "@workspace/db";
 import {
   ListSalesQueryParams,
   ListSalesResponse,
@@ -11,15 +17,41 @@ import {
   UpdateSaleBody,
   UpdateSaleResponse,
   DeleteSaleParams,
+  GetInvoiceDataParams,
 } from "@workspace/api-zod";
-import { requireRole } from "../lib/auth";
+import { requireRole, type AuthedRequest } from "../lib/auth";
 import { serializeSale } from "../lib/serializers";
+import {
+  broadcastNotification,
+  generateInvoiceNumber,
+  logActivity,
+} from "../lib/activity";
 
 const router: IRouter = Router();
 
 const requireViewer = requireRole("admin", "manager", "staff");
 const requireEditor = requireRole("admin", "manager", "staff");
 const requireDeleter = requireRole("admin", "manager");
+
+async function fetchCustomerName(id: number | null): Promise<string | null> {
+  if (!id) return null;
+  const [c] = await db
+    .select({ name: customersTable.name })
+    .from(customersTable)
+    .where(eq(customersTable.id, id));
+  return c?.name ?? null;
+}
+
+async function fetchActorName(
+  clerkUserId: string | null,
+): Promise<string | null> {
+  if (!clerkUserId) return null;
+  const [u] = await db
+    .select({ name: userRolesTable.name, email: userRolesTable.email })
+    .from(userRolesTable)
+    .where(eq(userRolesTable.clerkUserId, clerkUserId));
+  return u?.name ?? u?.email ?? null;
+}
 
 router.get("/sales", requireViewer, async (req, res): Promise<void> => {
   const parsed = ListSalesQueryParams.safeParse(req.query);
@@ -44,13 +76,25 @@ router.get("/sales", requireViewer, async (req, res): Promise<void> => {
     .select({
       sale: salesTable,
       customerName: customersTable.name,
+      actorName: userRolesTable.name,
+      actorEmail: userRolesTable.email,
     })
     .from(salesTable)
     .leftJoin(customersTable, eq(salesTable.customerId, customersTable.id))
+    .leftJoin(
+      userRolesTable,
+      eq(salesTable.createdByClerkId, userRolesTable.clerkUserId),
+    )
     .where(conditions.length ? and(...conditions) : undefined)
     .orderBy(desc(salesTable.saleDate));
 
-  const data = rows.map((r) => serializeSale(r.sale, r.customerName ?? null));
+  const data = rows.map((r) =>
+    serializeSale(
+      r.sale,
+      r.customerName ?? null,
+      r.actorName ?? r.actorEmail ?? null,
+    ),
+  );
   res.json(ListSalesResponse.parse(data));
 });
 
@@ -61,31 +105,102 @@ router.post("/sales", requireEditor, async (req, res): Promise<void> => {
     return;
   }
   const body = parsed.data;
-  const total = body.price * body.quantity;
+  const auth = req as AuthedRequest;
+  const subtotal = Number(body.price) * Number(body.quantity);
+  const discount = Math.max(0, Number(body.discountAmount ?? 0));
+  const taxableBase = Math.max(0, subtotal - discount);
+  const gstPercent = Math.max(0, Number(body.gstPercent ?? 0));
+  const gstAmount = Math.round(taxableBase * gstPercent) / 100;
+  const total = Math.round((taxableBase + gstAmount) * 100) / 100;
+
+  // If a product is linked, validate stock and decrement
+  let productName = body.productName;
+  let category = body.category;
+  if (body.productId) {
+    const [product] = await db
+      .select()
+      .from(productsTable)
+      .where(eq(productsTable.id, body.productId));
+    if (!product) {
+      res.status(400).json({ error: "Product not found" });
+      return;
+    }
+    if (body.status !== "cancelled" && product.stock < body.quantity) {
+      res.status(400).json({
+        error: `Not enough stock for ${product.name}. Available: ${product.stock}`,
+      });
+      return;
+    }
+    productName = product.name;
+    category = product.category;
+  }
+
   const [sale] = await db
     .insert(salesTable)
     .values({
-      productName: body.productName,
-      category: body.category,
+      productId: body.productId ?? null,
+      productName,
+      category,
       price: String(body.price),
       quantity: body.quantity,
+      subtotal: String(subtotal),
+      discountAmount: String(discount),
+      gstAmount: String(gstAmount),
       total: String(total),
+      paymentMethod: body.paymentMethod ?? null,
       status: body.status,
       saleDate: body.saleDate,
       customerId: body.customerId ?? null,
+      createdByClerkId: auth.userId ?? null,
       notes: body.notes ?? null,
     })
     .returning();
 
-  let customerName: string | null = null;
-  if (sale.customerId) {
-    const [c] = await db
-      .select({ name: customersTable.name })
-      .from(customersTable)
-      .where(eq(customersTable.id, sale.customerId));
-    customerName = c?.name ?? null;
+  const invoiceNumber = generateInvoiceNumber(sale.id, new Date(sale.saleDate));
+  await db
+    .update(salesTable)
+    .set({ invoiceNumber })
+    .where(eq(salesTable.id, sale.id));
+  sale.invoiceNumber = invoiceNumber;
+
+  // Decrement stock if product linked and not cancelled
+  if (body.productId && body.status !== "cancelled") {
+    const [updatedProduct] = await db
+      .update(productsTable)
+      .set({ stock: sql`${productsTable.stock} - ${body.quantity}` })
+      .where(eq(productsTable.id, body.productId))
+      .returning();
+    if (updatedProduct.stock <= updatedProduct.lowStockThreshold) {
+      await broadcastNotification({
+        type: "low_stock",
+        title: "Low stock after sale",
+        body: `${updatedProduct.name} now has ${updatedProduct.stock} units left.`,
+        metadata: { productId: updatedProduct.id, sku: updatedProduct.sku },
+      });
+    }
   }
-  res.status(201).json(GetSaleResponse.parse(serializeSale(sale, customerName)));
+
+  await logActivity({
+    clerkUserId: auth.userId,
+    actorName: auth.userRole?.name,
+    actorEmail: auth.userRole?.email,
+    action: "create",
+    entityType: "sale",
+    entityId: sale.id,
+    summary: `Recorded sale ${invoiceNumber} for ₹${total.toLocaleString("en-IN")}`,
+  });
+  await broadcastNotification({
+    type: "new_order",
+    title: "New order recorded",
+    body: `${productName} × ${body.quantity} — ₹${total.toLocaleString("en-IN")}`,
+    metadata: { saleId: sale.id, invoiceNumber },
+  });
+
+  const customerName = await fetchCustomerName(sale.customerId);
+  const actorName = await fetchActorName(sale.createdByClerkId);
+  res.status(201).json(
+    GetSaleResponse.parse(serializeSale(sale, customerName, actorName)),
+  );
 });
 
 router.get("/sales/:id", requireViewer, async (req, res): Promise<void> => {
@@ -98,16 +213,30 @@ router.get("/sales/:id", requireViewer, async (req, res): Promise<void> => {
     .select({
       sale: salesTable,
       customerName: customersTable.name,
+      actorName: userRolesTable.name,
+      actorEmail: userRolesTable.email,
     })
     .from(salesTable)
     .leftJoin(customersTable, eq(salesTable.customerId, customersTable.id))
+    .leftJoin(
+      userRolesTable,
+      eq(salesTable.createdByClerkId, userRolesTable.clerkUserId),
+    )
     .where(eq(salesTable.id, params.data.id));
 
   if (!row) {
     res.status(404).json({ error: "Sale not found" });
     return;
   }
-  res.json(GetSaleResponse.parse(serializeSale(row.sale, row.customerName ?? null)));
+  res.json(
+    GetSaleResponse.parse(
+      serializeSale(
+        row.sale,
+        row.customerName ?? null,
+        row.actorName ?? row.actorEmail ?? null,
+      ),
+    ),
+  );
 });
 
 router.patch("/sales/:id", requireEditor, async (req, res): Promise<void> => {
@@ -122,7 +251,13 @@ router.patch("/sales/:id", requireEditor, async (req, res): Promise<void> => {
     return;
   }
   const body = parsed.data;
-  const total = body.price * body.quantity;
+  const subtotal = Number(body.price) * Number(body.quantity);
+  const discount = Math.max(0, Number(body.discountAmount ?? 0));
+  const taxableBase = Math.max(0, subtotal - discount);
+  const gstPercent = Math.max(0, Number(body.gstPercent ?? 0));
+  const gstAmount = Math.round(taxableBase * gstPercent) / 100;
+  const total = Math.round((taxableBase + gstAmount) * 100) / 100;
+
   const [sale] = await db
     .update(salesTable)
     .set({
@@ -130,7 +265,11 @@ router.patch("/sales/:id", requireEditor, async (req, res): Promise<void> => {
       category: body.category,
       price: String(body.price),
       quantity: body.quantity,
+      subtotal: String(subtotal),
+      discountAmount: String(discount),
+      gstAmount: String(gstAmount),
       total: String(total),
+      paymentMethod: body.paymentMethod ?? null,
       status: body.status,
       saleDate: body.saleDate,
       customerId: body.customerId ?? null,
@@ -142,15 +281,21 @@ router.patch("/sales/:id", requireEditor, async (req, res): Promise<void> => {
     res.status(404).json({ error: "Sale not found" });
     return;
   }
-  let customerName: string | null = null;
-  if (sale.customerId) {
-    const [c] = await db
-      .select({ name: customersTable.name })
-      .from(customersTable)
-      .where(eq(customersTable.id, sale.customerId));
-    customerName = c?.name ?? null;
-  }
-  res.json(UpdateSaleResponse.parse(serializeSale(sale, customerName)));
+  const auth = req as AuthedRequest;
+  await logActivity({
+    clerkUserId: auth.userId,
+    actorName: auth.userRole?.name,
+    actorEmail: auth.userRole?.email,
+    action: "update",
+    entityType: "sale",
+    entityId: sale.id,
+    summary: `Updated sale ${sale.invoiceNumber ?? sale.id}`,
+  });
+  const customerName = await fetchCustomerName(sale.customerId);
+  const actorName = await fetchActorName(sale.createdByClerkId);
+  res.json(
+    UpdateSaleResponse.parse(serializeSale(sale, customerName, actorName)),
+  );
 });
 
 router.delete("/sales/:id", requireDeleter, async (req, res): Promise<void> => {
@@ -167,10 +312,81 @@ router.delete("/sales/:id", requireDeleter, async (req, res): Promise<void> => {
     res.status(404).json({ error: "Sale not found" });
     return;
   }
+  // Restock if linked product and not cancelled
+  if (sale.productId && sale.status !== "cancelled") {
+    await db
+      .update(productsTable)
+      .set({ stock: sql`${productsTable.stock} + ${sale.quantity}` })
+      .where(eq(productsTable.id, sale.productId));
+  }
+  const auth = req as AuthedRequest;
+  await logActivity({
+    clerkUserId: auth.userId,
+    actorName: auth.userRole?.name,
+    actorEmail: auth.userRole?.email,
+    action: "delete",
+    entityType: "sale",
+    entityId: sale.id,
+    summary: `Deleted sale ${sale.invoiceNumber ?? sale.id}`,
+  });
   res.sendStatus(204);
 });
 
-// Force tree-shake unused sql import warning
+router.get(
+  "/sales/:id/invoice",
+  requireViewer,
+  async (req, res): Promise<void> => {
+    const params = GetInvoiceDataParams.safeParse(req.params);
+    if (!params.success) {
+      res.status(400).json({ error: params.error.message });
+      return;
+    }
+    const [row] = await db
+      .select({
+        sale: salesTable,
+        customer: customersTable,
+      })
+      .from(salesTable)
+      .leftJoin(customersTable, eq(salesTable.customerId, customersTable.id))
+      .where(eq(salesTable.id, params.data.id));
+    if (!row) {
+      res.status(404).json({ error: "Sale not found" });
+      return;
+    }
+    const s = row.sale;
+    const c = row.customer;
+    const subtotal = Number(s.subtotal ?? s.total);
+    const discount = Number(s.discountAmount ?? 0);
+    const gst = Number(s.gstAmount ?? 0);
+    const total = Number(s.total);
+    const invoiceNumber =
+      s.invoiceNumber ?? generateInvoiceNumber(s.id, new Date(s.saleDate));
+    res.json({
+      invoiceNumber,
+      issueDate: new Date(s.saleDate).toISOString(),
+      status: s.status,
+      paymentMethod: s.paymentMethod ?? null,
+      sellerName: "Sales OS",
+      customerName: c?.name ?? null,
+      customerEmail: c?.email ?? null,
+      customerPhone: c?.phone ?? null,
+      lines: [
+        {
+          description: `${s.productName} (${s.category})`,
+          quantity: s.quantity,
+          unitPrice: Number(s.price),
+          amount: Number(s.price) * s.quantity,
+        },
+      ],
+      subtotal,
+      discountAmount: discount,
+      gstAmount: gst,
+      total,
+      notes: s.notes ?? null,
+    });
+  },
+);
+
 void sql;
 
 export default router;

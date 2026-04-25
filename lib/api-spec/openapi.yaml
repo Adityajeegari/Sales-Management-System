@@ -14,6 +14,14 @@ tags:
     description: Sales records
   - name: customers
     description: Customers
+  - name: products
+    description: Product catalog & inventory
+  - name: targets
+    description: Sales targets
+  - name: notifications
+    description: User notifications
+  - name: activity
+    description: Activity logs
   - name: analytics
     description: Analytics & dashboard
   - name: reports
@@ -384,6 +392,236 @@ paths:
                 items:
                   $ref: "#/components/schemas/ReportRow"
 
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List products
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: lowStockOnly
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create product (admin/manager)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get product
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    patch:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update product (admin/manager)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete product (admin only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /sales/{id}/invoice:
+    get:
+      operationId: getInvoiceData
+      tags: [sales]
+      summary: Get printable invoice data for a sale
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+
+  /targets/current:
+    get:
+      operationId: getCurrentTarget
+      tags: [targets]
+      summary: Get current month target with progress
+      responses:
+        "200":
+          description: Target
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TargetProgress"
+    put:
+      operationId: setCurrentTarget
+      tags: [targets]
+      summary: Set or update the current month team target (admin/manager)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TargetInput"
+      responses:
+        "200":
+          description: Updated target
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TargetProgress"
+
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: List notifications for current user
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/read-all:
+    post:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "204":
+          description: Marked
+
+  /activity:
+    get:
+      operationId: listActivity
+      tags: [activity]
+      summary: List recent activity (admin only)
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+      responses:
+        "200":
+          description: Activity log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityEntry"
+
+  /reports/employee-performance:
+    get:
+      operationId: getEmployeePerformance
+      tags: [reports]
+      summary: Sales performance by employee
+      responses:
+        "200":
+          description: Per-employee stats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EmployeePerformance"
+
+  /reports/profit-loss:
+    get:
+      operationId: getProfitLoss
+      tags: [reports]
+      summary: Profit & loss summary by month
+      parameters:
+        - in: query
+          name: year
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Monthly P&L rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProfitLossRow"
+
   /me:
     get:
       operationId: getCurrentUser
@@ -451,6 +689,10 @@ components:
       properties:
         id:
           type: integer
+        invoiceNumber:
+          type: ["string", "null"]
+        productId:
+          type: ["integer", "null"]
         productName:
           type: string
         category:
@@ -459,8 +701,17 @@ components:
           type: number
         quantity:
           type: integer
+        subtotal:
+          type: number
+        discountAmount:
+          type: number
+        gstAmount:
+          type: number
         total:
           type: number
+        paymentMethod:
+          type: ["string", "null"]
+          enum: [cash, upi, card, bank_transfer, null]
         status:
           type: string
           enum: [pending, completed, cancelled]
@@ -470,6 +721,10 @@ components:
         customerId:
           type: ["integer", "null"]
         customerName:
+          type: ["string", "null"]
+        createdByClerkId:
+          type: ["string", "null"]
+        createdByName:
           type: ["string", "null"]
         notes:
           type: ["string", "null"]
@@ -485,6 +740,9 @@ components:
         - category
         - price
         - quantity
+        - subtotal
+        - discountAmount
+        - gstAmount
         - total
         - status
         - saleDate
@@ -494,6 +752,8 @@ components:
     SaleInput:
       type: object
       properties:
+        productId:
+          type: ["integer", "null"]
         productName:
           type: string
           minLength: 1
@@ -506,6 +766,15 @@ components:
         quantity:
           type: integer
           minimum: 1
+        discountAmount:
+          type: number
+          minimum: 0
+        gstPercent:
+          type: number
+          minimum: 0
+        paymentMethod:
+          type: ["string", "null"]
+          enum: [cash, upi, card, bank_transfer, null]
         status:
           type: string
           enum: [pending, completed, cancelled]
@@ -543,6 +812,9 @@ components:
           type: number
         orderCount:
           type: integer
+        segment:
+          type: string
+          enum: [vip, regular, new]
         createdAt:
           type: string
           format: date-time
@@ -555,6 +827,7 @@ components:
         - email
         - totalSpent
         - orderCount
+        - segment
         - createdAt
         - updatedAt
 
@@ -712,3 +985,237 @@ components:
         role:
           $ref: "#/components/schemas/UserRole"
       required: [role]
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        sku:
+          type: string
+        category:
+          type: string
+        description:
+          type: ["string", "null"]
+        price:
+          type: number
+        costPrice:
+          type: number
+        stock:
+          type: integer
+        lowStockThreshold:
+          type: integer
+        lowStock:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - sku
+        - category
+        - price
+        - costPrice
+        - stock
+        - lowStockThreshold
+        - lowStock
+        - createdAt
+        - updatedAt
+
+    ProductInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        sku:
+          type: string
+          minLength: 1
+        category:
+          type: string
+          minLength: 1
+        description:
+          type: ["string", "null"]
+        price:
+          type: number
+          minimum: 0
+        costPrice:
+          type: number
+          minimum: 0
+        stock:
+          type: integer
+          minimum: 0
+        lowStockThreshold:
+          type: integer
+          minimum: 0
+      required: [name, sku, category, price, costPrice, stock, lowStockThreshold]
+
+    InvoiceLine:
+      type: object
+      properties:
+        description:
+          type: string
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+        amount:
+          type: number
+      required: [description, quantity, unitPrice, amount]
+
+    Invoice:
+      type: object
+      properties:
+        invoiceNumber:
+          type: string
+        issueDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+        paymentMethod:
+          type: ["string", "null"]
+        sellerName:
+          type: string
+        customerName:
+          type: ["string", "null"]
+        customerEmail:
+          type: ["string", "null"]
+        customerPhone:
+          type: ["string", "null"]
+        lines:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvoiceLine"
+        subtotal:
+          type: number
+        discountAmount:
+          type: number
+        gstAmount:
+          type: number
+        total:
+          type: number
+        notes:
+          type: ["string", "null"]
+      required:
+        - invoiceNumber
+        - issueDate
+        - status
+        - sellerName
+        - lines
+        - subtotal
+        - discountAmount
+        - gstAmount
+        - total
+
+    TargetInput:
+      type: object
+      properties:
+        targetAmount:
+          type: number
+          minimum: 0
+      required: [targetAmount]
+
+    TargetProgress:
+      type: object
+      properties:
+        year:
+          type: integer
+        month:
+          type: integer
+        targetAmount:
+          type: number
+        achievedAmount:
+          type: number
+        progressPercent:
+          type: number
+        daysElapsed:
+          type: integer
+        daysInMonth:
+          type: integer
+      required:
+        - year
+        - month
+        - targetAmount
+        - achievedAmount
+        - progressPercent
+        - daysElapsed
+        - daysInMonth
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, type, title, body, read, createdAt]
+
+    ActivityEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        actorName:
+          type: ["string", "null"]
+        actorEmail:
+          type: ["string", "null"]
+        action:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: ["integer", "null"]
+        summary:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, action, entityType, summary, createdAt]
+
+    EmployeePerformance:
+      type: object
+      properties:
+        clerkUserId:
+          type: ["string", "null"]
+        name:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        salesCount:
+          type: integer
+        revenue:
+          type: number
+        averageOrderValue:
+          type: number
+      required: [salesCount, revenue, averageOrderValue]
+
+    ProfitLossRow:
+      type: object
+      properties:
+        period:
+          type: string
+        revenue:
+          type: number
+        cost:
+          type: number
+        profit:
+          type: number
+        marginPercent:
+          type: number
+      required: [period, revenue, cost, profit, marginPercent]

@@ -10,7 +10,10 @@ import {
   LogOut,
   Sparkles,
   ShieldCheck,
+  Package,
+  Activity as ActivityIcon,
 } from "lucide-react";
+import { NotificationsBell } from "@/components/notifications-bell";
 import { useClerk, useUser } from "@clerk/react";
 
 import { cn } from "@/lib/utils";
@@ -39,8 +42,10 @@ interface NavItem {
 const navItems: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { title: "Sales", href: "/sales", icon: Receipt },
+  { title: "Products", href: "/products", icon: Package },
   { title: "Customers", href: "/customers", icon: Users },
   { title: "Reports", href: "/reports", icon: PieChart },
+  { title: "Activity", href: "/activity", icon: ActivityIcon, adminOnly: true },
   { title: "Team", href: "/team", icon: ShieldCheck, adminOnly: true },
   { title: "Settings", href: "/settings", icon: SettingsIcon },
 ];
@@ -154,6 +159,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Sheet>
 
           <div className="flex-1" />
+          <NotificationsBell />
           <ThemeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

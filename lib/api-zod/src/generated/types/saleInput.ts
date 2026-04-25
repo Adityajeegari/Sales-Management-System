@@ -5,9 +5,12 @@
  * Sales Management System API
  * OpenAPI spec version: 0.1.0
  */
+import type { SaleInputPaymentMethod } from "./saleInputPaymentMethod";
 import type { SaleInputStatus } from "./saleInputStatus";
 
 export interface SaleInput {
+  /** @nullable */
+  productId?: number | null;
   /** @minLength 1 */
   productName: string;
   /** @minLength 1 */
@@ -16,6 +19,12 @@ export interface SaleInput {
   price: number;
   /** @minimum 1 */
   quantity: number;
+  /** @minimum 0 */
+  discountAmount?: number;
+  /** @minimum 0 */
+  gstPercent?: number;
+  /** @nullable */
+  paymentMethod?: SaleInputPaymentMethod;
   status: SaleInputStatus;
   saleDate: Date;
   /** @nullable */

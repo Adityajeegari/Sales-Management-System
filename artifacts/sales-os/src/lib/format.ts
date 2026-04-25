@@ -1,32 +1,32 @@
-const currencyFormatter = new Intl.NumberFormat("en-US", {
+const currencyFormatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
-  currency: "USD",
+  currency: "INR",
   maximumFractionDigits: 0,
 });
 
-const currencyDetailedFormatter = new Intl.NumberFormat("en-US", {
+const currencyDetailedFormatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
-  currency: "USD",
+  currency: "INR",
   maximumFractionDigits: 2,
 });
 
-const numberFormatter = new Intl.NumberFormat("en-US");
+const numberFormatter = new Intl.NumberFormat("en-IN");
 
-const compactFormatter = new Intl.NumberFormat("en-US", {
+const compactFormatter = new Intl.NumberFormat("en-IN", {
   notation: "compact",
   maximumFractionDigits: 1,
 });
 
 export function formatCurrency(value: number, detailed = false): string {
-  if (!Number.isFinite(value)) return "$0";
+  if (!Number.isFinite(value)) return "₹0";
   return detailed
     ? currencyDetailedFormatter.format(value)
     : currencyFormatter.format(value);
 }
 
 export function formatCompactCurrency(value: number): string {
-  if (!Number.isFinite(value)) return "$0";
-  return `$${compactFormatter.format(value)}`;
+  if (!Number.isFinite(value)) return "₹0";
+  return `₹${compactFormatter.format(value)}`;
 }
 
 export function formatNumber(value: number): string {
@@ -40,22 +40,32 @@ export function formatPercent(value: number): string {
 
 export function formatDate(value: string | Date): string {
   const date = typeof value === "string" ? new Date(value) : value;
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString("en-IN", {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
 }
 
+export function formatDateTime(value: string | Date): string {
+  const date = typeof value === "string" ? new Date(value) : value;
+  return date.toLocaleString("en-IN", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export function formatMonthLabel(period: string): string {
-  // period like "2026-04"
   const [yearStr, monthStr] = period.split("-");
   const date = new Date(Number(yearStr), Number(monthStr) - 1, 1);
-  return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  return date.toLocaleDateString("en-IN", { month: "short", year: "numeric" });
 }
 
 export function formatShortMonth(period: string): string {
   const [yearStr, monthStr] = period.split("-");
   const date = new Date(Number(yearStr), Number(monthStr) - 1, 1);
-  return date.toLocaleDateString("en-US", { month: "short" });
+  return date.toLocaleDateString("en-IN", { month: "short" });
 }

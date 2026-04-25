@@ -5,6 +5,7 @@
  * Sales Management System API
  * OpenAPI spec version: 0.1.0
  */
+import type { CustomerSegment } from "./customerSegment";
 
 export interface Customer {
   id: number;
@@ -18,6 +19,7 @@ export interface Customer {
   notes?: string | null;
   totalSpent: number;
   orderCount: number;
+  segment: CustomerSegment;
   createdAt: Date;
   updatedAt: Date;
 }

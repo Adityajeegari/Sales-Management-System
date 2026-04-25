@@ -31,7 +31,11 @@ import {
   useGetTopProducts,
   useGetRecentSales,
   useGetSalesForecast,
+  useGetEmployeePerformance,
+  useListProducts,
 } from "@workspace/api-client-react";
+import { TargetCard } from "@/components/target-card";
+import { AlertTriangle } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -112,6 +116,8 @@ export default function Dashboard() {
   const topProductsQ = useGetTopProducts({ limit: 5 });
   const recentQ = useGetRecentSales({ limit: 6 });
   const forecastQ = useGetSalesForecast({ months: 3 });
+  const empPerfQ = useGetEmployeePerformance();
+  const lowStockQ = useListProducts({ lowStockOnly: true });
 
   const summary = summaryQ.data;
 
@@ -195,6 +201,53 @@ export default function Dashboard() {
             </motion.div>
           ))}
       </motion.div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <TargetCard />
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              Low stock
+            </CardTitle>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/products">
+                Manage
+                <ArrowRight className="ml-1 h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {lowStockQ.isLoading ? (
+              <Skeleton className="h-24 w-full" />
+            ) : (lowStockQ.data ?? []).length === 0 ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                Inventory is healthy.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {(lowStockQ.data ?? []).slice(0, 5).map((p) => (
+                  <li
+                    key={p.id}
+                    className="flex items-center justify-between rounded-md border p-2 text-sm"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{p.name}</p>
+                      <p className="text-xs text-muted-foreground">{p.sku}</p>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className="border-amber-500/40 text-amber-600 dark:text-amber-400"
+                    >
+                      {p.stock} left
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
@@ -437,6 +490,51 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Team performance</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Revenue contributed by each teammate this quarter.
+          </p>
+        </CardHeader>
+        <CardContent>
+          {empPerfQ.isLoading ? (
+            <Skeleton className="h-32 w-full" />
+          ) : (empPerfQ.data ?? []).length === 0 ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              No sales attributed yet.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {(empPerfQ.data ?? []).slice(0, 6).map((e, idx) => (
+                <li
+                  key={e.clerkUserId ?? `unknown-${idx}`}
+                  className="flex items-center justify-between gap-3"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="grid h-7 w-7 place-items-center rounded-md bg-muted text-xs font-medium tabular-nums">
+                      {idx + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">
+                        {e.name ?? e.email ?? "Unknown teammate"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatNumber(e.salesCount)} sales · avg{" "}
+                        {formatCurrency(e.averageOrderValue, true)}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-sm font-medium tabular-nums">
+                    {formatCurrency(e.revenue)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">

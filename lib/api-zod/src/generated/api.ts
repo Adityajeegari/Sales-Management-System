@@ -29,15 +29,31 @@ export const ListSalesQueryParams = zod.object({
 
 export const ListSalesResponseItem = zod.object({
   id: zod.number(),
+  invoiceNumber: zod.string().nullish(),
+  productId: zod.number().nullish(),
   productName: zod.string(),
   category: zod.string(),
   price: zod.number(),
   quantity: zod.number(),
+  subtotal: zod.number(),
+  discountAmount: zod.number(),
+  gstAmount: zod.number(),
   total: zod.number(),
+  paymentMethod: zod
+    .union([
+      zod.literal("cash"),
+      zod.literal("upi"),
+      zod.literal("card"),
+      zod.literal("bank_transfer"),
+      zod.literal(null),
+    ])
+    .nullish(),
   status: zod.enum(["pending", "completed", "cancelled"]),
   saleDate: zod.coerce.date(),
   customerId: zod.number().nullish(),
   customerName: zod.string().nullish(),
+  createdByClerkId: zod.string().nullish(),
+  createdByName: zod.string().nullish(),
   notes: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
@@ -50,11 +66,27 @@ export const ListSalesResponse = zod.array(ListSalesResponseItem);
 
 export const createSaleBodyPriceMin = 0;
 
+export const createSaleBodyDiscountAmountMin = 0;
+
+export const createSaleBodyGstPercentMin = 0;
+
 export const CreateSaleBody = zod.object({
+  productId: zod.number().nullish(),
   productName: zod.string().min(1),
   category: zod.string().min(1),
   price: zod.number().min(createSaleBodyPriceMin),
   quantity: zod.number().min(1),
+  discountAmount: zod.number().min(createSaleBodyDiscountAmountMin).optional(),
+  gstPercent: zod.number().min(createSaleBodyGstPercentMin).optional(),
+  paymentMethod: zod
+    .union([
+      zod.literal("cash"),
+      zod.literal("upi"),
+      zod.literal("card"),
+      zod.literal("bank_transfer"),
+      zod.literal(null),
+    ])
+    .nullish(),
   status: zod.enum(["pending", "completed", "cancelled"]),
   saleDate: zod.coerce.date(),
   customerId: zod.number().nullish(),
@@ -70,15 +102,31 @@ export const GetSaleParams = zod.object({
 
 export const GetSaleResponse = zod.object({
   id: zod.number(),
+  invoiceNumber: zod.string().nullish(),
+  productId: zod.number().nullish(),
   productName: zod.string(),
   category: zod.string(),
   price: zod.number(),
   quantity: zod.number(),
+  subtotal: zod.number(),
+  discountAmount: zod.number(),
+  gstAmount: zod.number(),
   total: zod.number(),
+  paymentMethod: zod
+    .union([
+      zod.literal("cash"),
+      zod.literal("upi"),
+      zod.literal("card"),
+      zod.literal("bank_transfer"),
+      zod.literal(null),
+    ])
+    .nullish(),
   status: zod.enum(["pending", "completed", "cancelled"]),
   saleDate: zod.coerce.date(),
   customerId: zod.number().nullish(),
   customerName: zod.string().nullish(),
+  createdByClerkId: zod.string().nullish(),
+  createdByName: zod.string().nullish(),
   notes: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
@@ -93,11 +141,27 @@ export const UpdateSaleParams = zod.object({
 
 export const updateSaleBodyPriceMin = 0;
 
+export const updateSaleBodyDiscountAmountMin = 0;
+
+export const updateSaleBodyGstPercentMin = 0;
+
 export const UpdateSaleBody = zod.object({
+  productId: zod.number().nullish(),
   productName: zod.string().min(1),
   category: zod.string().min(1),
   price: zod.number().min(updateSaleBodyPriceMin),
   quantity: zod.number().min(1),
+  discountAmount: zod.number().min(updateSaleBodyDiscountAmountMin).optional(),
+  gstPercent: zod.number().min(updateSaleBodyGstPercentMin).optional(),
+  paymentMethod: zod
+    .union([
+      zod.literal("cash"),
+      zod.literal("upi"),
+      zod.literal("card"),
+      zod.literal("bank_transfer"),
+      zod.literal(null),
+    ])
+    .nullish(),
   status: zod.enum(["pending", "completed", "cancelled"]),
   saleDate: zod.coerce.date(),
   customerId: zod.number().nullish(),
@@ -106,15 +170,31 @@ export const UpdateSaleBody = zod.object({
 
 export const UpdateSaleResponse = zod.object({
   id: zod.number(),
+  invoiceNumber: zod.string().nullish(),
+  productId: zod.number().nullish(),
   productName: zod.string(),
   category: zod.string(),
   price: zod.number(),
   quantity: zod.number(),
+  subtotal: zod.number(),
+  discountAmount: zod.number(),
+  gstAmount: zod.number(),
   total: zod.number(),
+  paymentMethod: zod
+    .union([
+      zod.literal("cash"),
+      zod.literal("upi"),
+      zod.literal("card"),
+      zod.literal("bank_transfer"),
+      zod.literal(null),
+    ])
+    .nullish(),
   status: zod.enum(["pending", "completed", "cancelled"]),
   saleDate: zod.coerce.date(),
   customerId: zod.number().nullish(),
   customerName: zod.string().nullish(),
+  createdByClerkId: zod.string().nullish(),
+  createdByName: zod.string().nullish(),
   notes: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
@@ -143,6 +223,7 @@ export const ListCustomersResponseItem = zod.object({
   notes: zod.string().nullish(),
   totalSpent: zod.number(),
   orderCount: zod.number(),
+  segment: zod.enum(["vip", "regular", "new"]),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -177,6 +258,7 @@ export const GetCustomerResponse = zod
     notes: zod.string().nullish(),
     totalSpent: zod.number(),
     orderCount: zod.number(),
+    segment: zod.enum(["vip", "regular", "new"]),
     createdAt: zod.coerce.date(),
     updatedAt: zod.coerce.date(),
   })
@@ -185,15 +267,31 @@ export const GetCustomerResponse = zod
       sales: zod.array(
         zod.object({
           id: zod.number(),
+          invoiceNumber: zod.string().nullish(),
+          productId: zod.number().nullish(),
           productName: zod.string(),
           category: zod.string(),
           price: zod.number(),
           quantity: zod.number(),
+          subtotal: zod.number(),
+          discountAmount: zod.number(),
+          gstAmount: zod.number(),
           total: zod.number(),
+          paymentMethod: zod
+            .union([
+              zod.literal("cash"),
+              zod.literal("upi"),
+              zod.literal("card"),
+              zod.literal("bank_transfer"),
+              zod.literal(null),
+            ])
+            .nullish(),
           status: zod.enum(["pending", "completed", "cancelled"]),
           saleDate: zod.coerce.date(),
           customerId: zod.number().nullish(),
           customerName: zod.string().nullish(),
+          createdByClerkId: zod.string().nullish(),
+          createdByName: zod.string().nullish(),
           notes: zod.string().nullish(),
           createdAt: zod.coerce.date(),
           updatedAt: zod.coerce.date(),
@@ -226,6 +324,7 @@ export const UpdateCustomerResponse = zod.object({
   notes: zod.string().nullish(),
   totalSpent: zod.number(),
   orderCount: zod.number(),
+  segment: zod.enum(["vip", "regular", "new"]),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -305,15 +404,31 @@ export const GetRecentSalesQueryParams = zod.object({
 
 export const GetRecentSalesResponseItem = zod.object({
   id: zod.number(),
+  invoiceNumber: zod.string().nullish(),
+  productId: zod.number().nullish(),
   productName: zod.string(),
   category: zod.string(),
   price: zod.number(),
   quantity: zod.number(),
+  subtotal: zod.number(),
+  discountAmount: zod.number(),
+  gstAmount: zod.number(),
   total: zod.number(),
+  paymentMethod: zod
+    .union([
+      zod.literal("cash"),
+      zod.literal("upi"),
+      zod.literal("card"),
+      zod.literal("bank_transfer"),
+      zod.literal(null),
+    ])
+    .nullish(),
   status: zod.enum(["pending", "completed", "cancelled"]),
   saleDate: zod.coerce.date(),
   customerId: zod.number().nullish(),
   customerName: zod.string().nullish(),
+  createdByClerkId: zod.string().nullish(),
+  createdByName: zod.string().nullish(),
   notes: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
@@ -362,6 +477,254 @@ export const GetYearlyReportResponseItem = zod.object({
   growthPercent: zod.number(),
 });
 export const GetYearlyReportResponse = zod.array(GetYearlyReportResponseItem);
+
+/**
+ * @summary List products
+ */
+export const ListProductsQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+  category: zod.coerce.string().optional(),
+  lowStockOnly: zod.coerce.boolean().optional(),
+});
+
+export const ListProductsResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  sku: zod.string(),
+  category: zod.string(),
+  description: zod.string().nullish(),
+  price: zod.number(),
+  costPrice: zod.number(),
+  stock: zod.number(),
+  lowStockThreshold: zod.number(),
+  lowStock: zod.boolean(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListProductsResponse = zod.array(ListProductsResponseItem);
+
+/**
+ * @summary Create product (admin/manager)
+ */
+
+export const createProductBodyPriceMin = 0;
+
+export const createProductBodyCostPriceMin = 0;
+
+export const createProductBodyStockMin = 0;
+
+export const createProductBodyLowStockThresholdMin = 0;
+
+export const CreateProductBody = zod.object({
+  name: zod.string().min(1),
+  sku: zod.string().min(1),
+  category: zod.string().min(1),
+  description: zod.string().nullish(),
+  price: zod.number().min(createProductBodyPriceMin),
+  costPrice: zod.number().min(createProductBodyCostPriceMin),
+  stock: zod.number().min(createProductBodyStockMin),
+  lowStockThreshold: zod.number().min(createProductBodyLowStockThresholdMin),
+});
+
+/**
+ * @summary Get product
+ */
+export const GetProductParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetProductResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  sku: zod.string(),
+  category: zod.string(),
+  description: zod.string().nullish(),
+  price: zod.number(),
+  costPrice: zod.number(),
+  stock: zod.number(),
+  lowStockThreshold: zod.number(),
+  lowStock: zod.boolean(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update product (admin/manager)
+ */
+export const UpdateProductParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const updateProductBodyPriceMin = 0;
+
+export const updateProductBodyCostPriceMin = 0;
+
+export const updateProductBodyStockMin = 0;
+
+export const updateProductBodyLowStockThresholdMin = 0;
+
+export const UpdateProductBody = zod.object({
+  name: zod.string().min(1),
+  sku: zod.string().min(1),
+  category: zod.string().min(1),
+  description: zod.string().nullish(),
+  price: zod.number().min(updateProductBodyPriceMin),
+  costPrice: zod.number().min(updateProductBodyCostPriceMin),
+  stock: zod.number().min(updateProductBodyStockMin),
+  lowStockThreshold: zod.number().min(updateProductBodyLowStockThresholdMin),
+});
+
+export const UpdateProductResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  sku: zod.string(),
+  category: zod.string(),
+  description: zod.string().nullish(),
+  price: zod.number(),
+  costPrice: zod.number(),
+  stock: zod.number(),
+  lowStockThreshold: zod.number(),
+  lowStock: zod.boolean(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete product (admin only)
+ */
+export const DeleteProductParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Get printable invoice data for a sale
+ */
+export const GetInvoiceDataParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetInvoiceDataResponse = zod.object({
+  invoiceNumber: zod.string(),
+  issueDate: zod.coerce.date(),
+  status: zod.string(),
+  paymentMethod: zod.string().nullish(),
+  sellerName: zod.string(),
+  customerName: zod.string().nullish(),
+  customerEmail: zod.string().nullish(),
+  customerPhone: zod.string().nullish(),
+  lines: zod.array(
+    zod.object({
+      description: zod.string(),
+      quantity: zod.number(),
+      unitPrice: zod.number(),
+      amount: zod.number(),
+    }),
+  ),
+  subtotal: zod.number(),
+  discountAmount: zod.number(),
+  gstAmount: zod.number(),
+  total: zod.number(),
+  notes: zod.string().nullish(),
+});
+
+/**
+ * @summary Get current month target with progress
+ */
+export const GetCurrentTargetResponse = zod.object({
+  year: zod.number(),
+  month: zod.number(),
+  targetAmount: zod.number(),
+  achievedAmount: zod.number(),
+  progressPercent: zod.number(),
+  daysElapsed: zod.number(),
+  daysInMonth: zod.number(),
+});
+
+/**
+ * @summary Set or update the current month team target (admin/manager)
+ */
+export const setCurrentTargetBodyTargetAmountMin = 0;
+
+export const SetCurrentTargetBody = zod.object({
+  targetAmount: zod.number().min(setCurrentTargetBodyTargetAmountMin),
+});
+
+export const SetCurrentTargetResponse = zod.object({
+  year: zod.number(),
+  month: zod.number(),
+  targetAmount: zod.number(),
+  achievedAmount: zod.number(),
+  progressPercent: zod.number(),
+  daysElapsed: zod.number(),
+  daysInMonth: zod.number(),
+});
+
+/**
+ * @summary List notifications for current user
+ */
+export const ListNotificationsResponseItem = zod.object({
+  id: zod.number(),
+  type: zod.string(),
+  title: zod.string(),
+  body: zod.string(),
+  read: zod.boolean(),
+  createdAt: zod.coerce.date(),
+});
+export const ListNotificationsResponse = zod.array(
+  ListNotificationsResponseItem,
+);
+
+/**
+ * @summary List recent activity (admin only)
+ */
+export const listActivityQueryLimitMax = 200;
+
+export const ListActivityQueryParams = zod.object({
+  limit: zod.coerce.number().min(1).max(listActivityQueryLimitMax).optional(),
+});
+
+export const ListActivityResponseItem = zod.object({
+  id: zod.number(),
+  actorName: zod.string().nullish(),
+  actorEmail: zod.string().nullish(),
+  action: zod.string(),
+  entityType: zod.string(),
+  entityId: zod.number().nullish(),
+  summary: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+export const ListActivityResponse = zod.array(ListActivityResponseItem);
+
+/**
+ * @summary Sales performance by employee
+ */
+export const GetEmployeePerformanceResponseItem = zod.object({
+  clerkUserId: zod.string().nullish(),
+  name: zod.string().nullish(),
+  email: zod.string().nullish(),
+  salesCount: zod.number(),
+  revenue: zod.number(),
+  averageOrderValue: zod.number(),
+});
+export const GetEmployeePerformanceResponse = zod.array(
+  GetEmployeePerformanceResponseItem,
+);
+
+/**
+ * @summary Profit & loss summary by month
+ */
+export const GetProfitLossQueryParams = zod.object({
+  year: zod.coerce.number().optional(),
+});
+
+export const GetProfitLossResponseItem = zod.object({
+  period: zod.string(),
+  revenue: zod.number(),
+  cost: zod.number(),
+  profit: zod.number(),
+  marginPercent: zod.number(),
+});
+export const GetProfitLossResponse = zod.array(GetProfitLossResponseItem);
 
 /**
  * @summary Get the currently signed-in user with their role

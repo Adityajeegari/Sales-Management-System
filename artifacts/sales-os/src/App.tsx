@@ -29,6 +29,8 @@ import CustomerDetailPage from "@/pages/customer-detail";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import TeamPage from "@/pages/team";
+import ProductsPage from "@/pages/products";
+import ActivityPage from "@/pages/activity";
 import NotFound from "@/pages/not-found";
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -217,6 +219,16 @@ function ClerkProviderWithRoutes() {
           <Route path="/sales">
             <Protected>
               <SalesPage />
+            </Protected>
+          </Route>
+          <Route path="/products">
+            <Protected>
+              <ProductsPage />
+            </Protected>
+          </Route>
+          <Route path="/activity">
+            <Protected>
+              <ActivityPage />
             </Protected>
           </Route>
           <Route path="/customers">

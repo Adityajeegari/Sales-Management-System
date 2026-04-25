@@ -5,21 +5,35 @@
  * Sales Management System API
  * OpenAPI spec version: 0.1.0
  */
+import type { SalePaymentMethod } from "./salePaymentMethod";
 import type { SaleStatus } from "./saleStatus";
 
 export interface Sale {
   id: number;
+  /** @nullable */
+  invoiceNumber?: string | null;
+  /** @nullable */
+  productId?: number | null;
   productName: string;
   category: string;
   price: number;
   quantity: number;
+  subtotal: number;
+  discountAmount: number;
+  gstAmount: number;
   total: number;
+  /** @nullable */
+  paymentMethod?: SalePaymentMethod;
   status: SaleStatus;
   saleDate: Date;
   /** @nullable */
   customerId?: number | null;
   /** @nullable */
   customerName?: string | null;
+  /** @nullable */
+  createdByClerkId?: string | null;
+  /** @nullable */
+  createdByName?: string | null;
   /** @nullable */
   notes?: string | null;
   createdAt: Date;

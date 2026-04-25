@@ -1,6 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Pencil, Trash2, Filter, X } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Pencil,
+  Trash2,
+  Filter,
+  X,
+  FileDown,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -9,6 +17,7 @@ import {
   useUpdateSale,
   useDeleteSale,
   useListCustomers,
+  useListProducts,
   getListSalesQueryKey,
   getGetDashboardSummaryQueryKey,
   getGetSalesTrendQueryKey,
@@ -16,6 +25,10 @@ import {
   getGetTopProductsQueryKey,
   getGetRecentSalesQueryKey,
   getGetSalesForecastQueryKey,
+  getListProductsQueryKey,
+  getGetCurrentTargetQueryKey,
+  getListNotificationsQueryKey,
+  getInvoiceData,
   type Sale,
   type SaleInput,
 } from "@workspace/api-client-react";
@@ -63,11 +76,19 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { formatCurrency, formatDate } from "@/lib/format";
 import { useCurrentUserRole } from "@/lib/roles";
+import { downloadInvoicePdf } from "@/lib/pdf";
 
 const STATUS_OPTIONS: SaleInput["status"][] = [
   "pending",
   "completed",
   "cancelled",
+];
+
+const PAYMENT_OPTIONS: NonNullable<SaleInput["paymentMethod"]>[] = [
+  "cash",
+  "upi",
+  "card",
+  "bank_transfer",
 ];
 
 function todayISO(): string {
@@ -84,6 +105,9 @@ function invalidateAllSalesData(qc: ReturnType<typeof useQueryClient>) {
   qc.invalidateQueries({ queryKey: getGetTopProductsQueryKey() });
   qc.invalidateQueries({ queryKey: getGetRecentSalesQueryKey() });
   qc.invalidateQueries({ queryKey: getGetSalesForecastQueryKey() });
+  qc.invalidateQueries({ queryKey: getListProductsQueryKey() });
+  qc.invalidateQueries({ queryKey: getGetCurrentTargetQueryKey() });
+  qc.invalidateQueries({ queryKey: getListNotificationsQueryKey() });
 }
 
 function SaleDialog({
@@ -97,14 +121,35 @@ function SaleDialog({
 }) {
   const qc = useQueryClient();
   const customersQ = useListCustomers();
+  const productsQ = useListProducts();
   const createMut = useCreateSale();
   const updateMut = useUpdateSale();
 
+  const [productId, setProductId] = useState<string>(
+    sale?.productId ? String(sale.productId) : "manual",
+  );
   const [productName, setProductName] = useState(sale?.productName ?? "");
   const [category, setCategory] = useState(sale?.category ?? "");
   const [price, setPrice] = useState<string>(sale ? String(sale.price) : "");
   const [quantity, setQuantity] = useState<string>(
     sale ? String(sale.quantity) : "1",
+  );
+  const [discount, setDiscount] = useState<string>(
+    sale ? String(sale.discountAmount ?? 0) : "0",
+  );
+  const [gstPercent, setGstPercent] = useState<string>(
+    sale && sale.subtotal
+      ? String(
+          Math.round(
+            ((sale.gstAmount ?? 0) /
+              Math.max(1, sale.subtotal - (sale.discountAmount ?? 0))) *
+              10000,
+          ) / 100,
+        )
+      : "18",
+  );
+  const [paymentMethod, setPaymentMethod] = useState<string>(
+    sale?.paymentMethod ?? "cash",
   );
   const [status, setStatus] = useState<SaleInput["status"]>(
     sale?.status ?? "completed",
@@ -120,13 +165,36 @@ function SaleDialog({
   const isEdit = !!sale;
   const submitting = createMut.isPending || updateMut.isPending;
 
+  // Auto-fill from product
+  useEffect(() => {
+    if (productId === "manual") return;
+    const p = (productsQ.data ?? []).find(
+      (pr) => String(pr.id) === productId,
+    );
+    if (p) {
+      setProductName(p.name);
+      setCategory(p.category);
+      setPrice(String(p.price));
+    }
+  }, [productId, productsQ.data]);
+
+  const subtotal = Number(price || 0) * Number(quantity || 0);
+  const discountNum = Math.max(0, Number(discount || 0));
+  const taxableBase = Math.max(0, subtotal - discountNum);
+  const gstNum = (taxableBase * Number(gstPercent || 0)) / 100;
+  const total = taxableBase + gstNum;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const body: SaleInput = {
+      productId: productId === "manual" ? null : Number(productId),
       productName: productName.trim(),
       category: category.trim(),
       price: Number(price),
       quantity: Number(quantity),
+      discountAmount: discountNum,
+      gstPercent: Number(gstPercent || 0),
+      paymentMethod: paymentMethod as SaleInput["paymentMethod"],
       status,
       saleDate,
       customerId: customerId === "none" ? null : Number(customerId),
@@ -150,27 +218,44 @@ function SaleDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit sale" : "New sale"}</DialogTitle>
           <DialogDescription>
             {isEdit
               ? "Update the details for this sale."
-              : "Log a new sale to your records."}
+              : "Log a new sale. Pick a catalog product to auto-deduct stock."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-2">
           <div className="grid gap-2">
-            <Label htmlFor="productName">Product</Label>
-            <Input
-              id="productName"
-              value={productName}
-              required
-              onChange={(e) => setProductName(e.target.value)}
-              placeholder="e.g. Pro Subscription"
-            />
+            <Label>Catalog product</Label>
+            <Select value={productId} onValueChange={setProductId}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="manual">Custom (no inventory)</SelectItem>
+                {(productsQ.data ?? []).map((p) => (
+                  <SelectItem key={p.id} value={String(p.id)}>
+                    {p.name} — {formatCurrency(p.price, true)} ({p.stock} in
+                    stock)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="productName">Product name</Label>
+              <Input
+                id="productName"
+                value={productName}
+                required
+                onChange={(e) => setProductName(e.target.value)}
+                disabled={productId !== "manual"}
+              />
+            </div>
             <div className="grid gap-2">
               <Label htmlFor="category">Category</Label>
               <Input
@@ -178,31 +263,13 @@ function SaleDialog({
                 value={category}
                 required
                 onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g. Software"
+                disabled={productId !== "manual"}
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={status}
-                onValueChange={(v) => setStatus(v as SaleInput["status"])}
-              >
-                <SelectTrigger id="status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {STATUS_OPTIONS.map((s) => (
-                    <SelectItem key={s} value={s} className="capitalize">
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-3">
             <div className="grid gap-2">
-              <Label htmlFor="price">Unit price</Label>
+              <Label htmlFor="price">Unit price (₹)</Label>
               <Input
                 id="price"
                 type="number"
@@ -224,6 +291,63 @@ function SaleDialog({
                 required
                 onChange={(e) => setQuantity(e.target.value)}
               />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="status">Status</Label>
+              <Select
+                value={status}
+                onValueChange={(v) => setStatus(v as SaleInput["status"])}
+              >
+                <SelectTrigger id="status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map((s) => (
+                    <SelectItem key={s} value={s} className="capitalize">
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-2">
+              <Label htmlFor="discount">Discount (₹)</Label>
+              <Input
+                id="discount"
+                type="number"
+                step="0.01"
+                min="0"
+                value={discount}
+                onChange={(e) => setDiscount(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="gst">GST (%)</Label>
+              <Input
+                id="gst"
+                type="number"
+                step="0.01"
+                min="0"
+                value={gstPercent}
+                onChange={(e) => setGstPercent(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Payment method</Label>
+              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAYMENT_OPTIONS.map((p) => (
+                    <SelectItem key={p} value={p} className="capitalize">
+                      {p.replace("_", " ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -261,17 +385,27 @@ function SaleDialog({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Optional details about this sale"
+              rows={2}
             />
           </div>
-          <p className="text-xs text-muted-foreground">
-            Total:{" "}
-            <span className="font-medium text-foreground">
-              {formatCurrency(
-                Number(price || 0) * Number(quantity || 0),
-                true,
-              )}
-            </span>
-          </p>
+          <div className="rounded-md border bg-muted/30 p-3 text-sm">
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span>{formatCurrency(subtotal, true)}</span>
+            </div>
+            <div className="flex justify-between text-muted-foreground">
+              <span>Discount</span>
+              <span>- {formatCurrency(discountNum, true)}</span>
+            </div>
+            <div className="flex justify-between text-muted-foreground">
+              <span>GST</span>
+              <span>{formatCurrency(gstNum, true)}</span>
+            </div>
+            <div className="mt-2 flex justify-between border-t pt-2 font-semibold">
+              <span>Total</span>
+              <span>{formatCurrency(total, true)}</span>
+            </div>
+          </div>
           <DialogFooter>
             <Button
               type="button"
@@ -326,6 +460,17 @@ export default function SalesPage() {
     }
   };
 
+  const handleInvoice = async (id: number) => {
+    try {
+      const inv = await getInvoiceData(id);
+      downloadInvoicePdf(inv);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not download invoice",
+      );
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col items-start justify-between gap-3 md:flex-row md:items-center">
@@ -334,7 +479,7 @@ export default function SalesPage() {
             Sales
           </h1>
           <p className="text-sm text-muted-foreground">
-            Every order, in one place.
+            Every order, with billing, GST, and invoices.
           </p>
         </div>
         <Button
@@ -395,21 +540,22 @@ export default function SalesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Invoice</TableHead>
                   <TableHead>Product</TableHead>
                   <TableHead>Customer</TableHead>
-                  <TableHead>Category</TableHead>
                   <TableHead className="text-right">Qty</TableHead>
                   <TableHead className="text-right">Total</TableHead>
+                  <TableHead>Payment</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
-                  <TableHead className="w-[100px]" />
+                  <TableHead className="w-[120px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   Array.from({ length: 6 }).map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell colSpan={8}>
+                      <TableCell colSpan={9}>
                         <Skeleton className="h-6 w-full" />
                       </TableCell>
                     </TableRow>
@@ -417,7 +563,7 @@ export default function SalesPage() {
                 ) : (sales ?? []).length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={8}
+                      colSpan={9}
                       className="py-12 text-center text-sm text-muted-foreground"
                     >
                       No sales match your filters.
@@ -426,20 +572,24 @@ export default function SalesPage() {
                 ) : (
                   (sales ?? []).map((s) => (
                     <TableRow key={s.id}>
+                      <TableCell className="font-mono text-xs">
+                        {s.invoiceNumber ?? `#${s.id}`}
+                      </TableCell>
                       <TableCell className="font-medium">
                         {s.productName}
+                        <p className="text-xs text-muted-foreground">
+                          {s.category}
+                        </p>
                       </TableCell>
                       <TableCell>{s.customerName ?? "Walk-in"}</TableCell>
-                      <TableCell>
-                        <span className="rounded-md bg-muted px-2 py-0.5 text-xs">
-                          {s.category}
-                        </span>
-                      </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {s.quantity}
                       </TableCell>
                       <TableCell className="text-right font-medium tabular-nums">
                         {formatCurrency(s.total, true)}
+                      </TableCell>
+                      <TableCell className="text-xs capitalize text-muted-foreground">
+                        {s.paymentMethod?.replace("_", " ") ?? "—"}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -459,6 +609,14 @@ export default function SalesPage() {
                         {formatDate(s.saleDate)}
                       </TableCell>
                       <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Download invoice"
+                          onClick={() => handleInvoice(s.id)}
+                        >
+                          <FileDown className="h-3.5 w-3.5" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -507,7 +665,7 @@ export default function SalesPage() {
             <AlertDialogDescription>
               {deleting?.productName} for{" "}
               {formatCurrency(deleting?.total ?? 0, true)} will be permanently
-              removed.
+              removed. Stock will be restored if linked to a product.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
