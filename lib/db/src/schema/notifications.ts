@@ -9,7 +9,7 @@ import {
 
 export const notificationsTable = pgTable("notifications", {
   id: serial("id").primaryKey(),
-  clerkUserId: text("clerk_user_id"),
+  salesOsUserId: text("clerk_user_id"),
   type: text("type").notNull(),
   title: text("title").notNull(),
   body: text("body").notNull(),

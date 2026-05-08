@@ -70,7 +70,7 @@ router.post("/products", requireEditor, async (req, res): Promise<void> => {
       .returning();
     const auth = req as AuthedRequest;
     await logActivity({
-      clerkUserId: auth.userId,
+      salesOsUserId: auth.userId,
       actorName: auth.userRole?.name,
       actorEmail: auth.userRole?.email,
       action: "create",
@@ -140,7 +140,7 @@ router.patch("/products/:id", requireEditor, async (req, res): Promise<void> => 
   }
   const auth = req as AuthedRequest;
   await logActivity({
-    clerkUserId: auth.userId,
+    salesOsUserId: auth.userId,
     actorName: auth.userRole?.name,
     actorEmail: auth.userRole?.email,
     action: "update",
@@ -178,7 +178,7 @@ router.delete(
     }
     const auth = req as AuthedRequest;
     await logActivity({
-      clerkUserId: auth.userId,
+      salesOsUserId: auth.userId,
       actorName: auth.userRole?.name,
       actorEmail: auth.userRole?.email,
       action: "delete",

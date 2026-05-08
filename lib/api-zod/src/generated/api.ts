@@ -52,7 +52,7 @@ export const ListSalesResponseItem = zod.object({
   saleDate: zod.coerce.date(),
   customerId: zod.number().nullish(),
   customerName: zod.string().nullish(),
-  createdByClerkId: zod.string().nullish(),
+  createdBySalesOsId: zod.string().nullish(),
   createdByName: zod.string().nullish(),
   notes: zod.string().nullish(),
   createdAt: zod.coerce.date(),
@@ -125,7 +125,7 @@ export const GetSaleResponse = zod.object({
   saleDate: zod.coerce.date(),
   customerId: zod.number().nullish(),
   customerName: zod.string().nullish(),
-  createdByClerkId: zod.string().nullish(),
+  createdBySalesOsId: zod.string().nullish(),
   createdByName: zod.string().nullish(),
   notes: zod.string().nullish(),
   createdAt: zod.coerce.date(),
@@ -193,7 +193,7 @@ export const UpdateSaleResponse = zod.object({
   saleDate: zod.coerce.date(),
   customerId: zod.number().nullish(),
   customerName: zod.string().nullish(),
-  createdByClerkId: zod.string().nullish(),
+  createdBySalesOsId: zod.string().nullish(),
   createdByName: zod.string().nullish(),
   notes: zod.string().nullish(),
   createdAt: zod.coerce.date(),
@@ -290,7 +290,7 @@ export const GetCustomerResponse = zod
           saleDate: zod.coerce.date(),
           customerId: zod.number().nullish(),
           customerName: zod.string().nullish(),
-          createdByClerkId: zod.string().nullish(),
+          createdBySalesOsId: zod.string().nullish(),
           createdByName: zod.string().nullish(),
           notes: zod.string().nullish(),
           createdAt: zod.coerce.date(),
@@ -427,7 +427,7 @@ export const GetRecentSalesResponseItem = zod.object({
   saleDate: zod.coerce.date(),
   customerId: zod.number().nullish(),
   customerName: zod.string().nullish(),
-  createdByClerkId: zod.string().nullish(),
+  createdBySalesOsId: zod.string().nullish(),
   createdByName: zod.string().nullish(),
   notes: zod.string().nullish(),
   createdAt: zod.coerce.date(),
@@ -699,7 +699,7 @@ export const ListActivityResponse = zod.array(ListActivityResponseItem);
  * @summary Sales performance by employee
  */
 export const GetEmployeePerformanceResponseItem = zod.object({
-  clerkUserId: zod.string().nullish(),
+  salesOsUserId: zod.string().nullish(),
   name: zod.string().nullish(),
   email: zod.string().nullish(),
   salesCount: zod.number(),
@@ -731,7 +731,7 @@ export const GetProfitLossResponse = zod.array(GetProfitLossResponseItem);
  */
 export const GetCurrentUserResponse = zod.object({
   id: zod.number(),
-  clerkUserId: zod.string(),
+  salesOsUserId: zod.string(),
   email: zod.string().nullish(),
   name: zod.string().nullish(),
   role: zod.enum(["admin", "manager", "staff"]),
@@ -742,7 +742,7 @@ export const GetCurrentUserResponse = zod.object({
  */
 export const ListTeamMembersResponseItem = zod.object({
   id: zod.number(),
-  clerkUserId: zod.string(),
+  salesOsUserId: zod.string(),
   email: zod.string().nullish(),
   name: zod.string().nullish(),
   role: zod.enum(["admin", "manager", "staff"]),
@@ -763,7 +763,7 @@ export const UpdateMemberRoleBody = zod.object({
 
 export const UpdateMemberRoleResponse = zod.object({
   id: zod.number(),
-  clerkUserId: zod.string(),
+  salesOsUserId: zod.string(),
   email: zod.string().nullish(),
   name: zod.string().nullish(),
   role: zod.enum(["admin", "manager", "staff"]),

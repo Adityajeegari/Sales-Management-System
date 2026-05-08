@@ -104,7 +104,7 @@ router.put("/targets/current", requireEditor, async (req, res) => {
   }
   const auth = req as AuthedRequest;
   await logActivity({
-    clerkUserId: auth.userId,
+    salesOsUserId: auth.userId,
     actorName: auth.userRole?.name,
     actorEmail: auth.userRole?.email,
     action: "update",

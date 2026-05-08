@@ -12,7 +12,7 @@ export const salesTargetsTable = pgTable(
   "sales_targets",
   {
     id: serial("id").primaryKey(),
-    clerkUserId: text("clerk_user_id"),
+    salesOsUserId: text("clerk_user_id"),
     year: integer("year").notNull(),
     month: integer("month").notNull(),
     targetAmount: numeric("target_amount", { precision: 14, scale: 2 })
@@ -28,7 +28,7 @@ export const salesTargetsTable = pgTable(
   },
   (t) => ({
     uniqUserPeriod: unique("sales_targets_user_period_unique").on(
-      t.clerkUserId,
+      t.salesOsUserId,
       t.year,
       t.month,
     ),

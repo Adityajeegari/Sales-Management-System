@@ -92,10 +92,10 @@ router.get("/notifications", requireViewer, async (req, res) => {
     .from(notificationsTable)
     .where(
       or(
-        isNull(notificationsTable.clerkUserId),
+        isNull(notificationsTable.salesOsUserId),
         auth.userId
-          ? eq(notificationsTable.clerkUserId, auth.userId)
-          : isNull(notificationsTable.clerkUserId),
+          ? eq(notificationsTable.salesOsUserId, auth.userId)
+          : isNull(notificationsTable.salesOsUserId),
       ),
     )
     .orderBy(desc(notificationsTable.createdAt))
@@ -119,10 +119,10 @@ router.post("/notifications/read-all", requireViewer, async (req, res) => {
     .from(notificationsTable)
     .where(
       or(
-        isNull(notificationsTable.clerkUserId),
+        isNull(notificationsTable.salesOsUserId),
         auth.userId
-          ? eq(notificationsTable.clerkUserId, auth.userId)
-          : isNull(notificationsTable.clerkUserId),
+          ? eq(notificationsTable.salesOsUserId, auth.userId)
+          : isNull(notificationsTable.salesOsUserId),
       ),
     );
   if (rows.length) {

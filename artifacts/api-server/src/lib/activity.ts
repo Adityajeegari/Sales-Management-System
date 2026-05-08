@@ -1,7 +1,7 @@
 import { db, activityLogsTable, notificationsTable } from "@workspace/db";
 
 export interface LogActivityArgs {
-  clerkUserId?: string | null;
+  salesOsUserId?: string | null;
   actorName?: string | null;
   actorEmail?: string | null;
   action: string;
@@ -14,7 +14,7 @@ export interface LogActivityArgs {
 export async function logActivity(args: LogActivityArgs): Promise<void> {
   try {
     await db.insert(activityLogsTable).values({
-      clerkUserId: args.clerkUserId ?? null,
+      salesOsUserId: args.salesOsUserId ?? null,
       actorName: args.actorName ?? null,
       actorEmail: args.actorEmail ?? null,
       action: args.action,
@@ -33,13 +33,13 @@ export interface NotifyArgs {
   title: string;
   body: string;
   metadata?: Record<string, unknown> | null;
-  clerkUserId?: string | null;
+  salesOsUserId?: string | null;
 }
 
 export async function broadcastNotification(args: NotifyArgs): Promise<void> {
   try {
     await db.insert(notificationsTable).values({
-      clerkUserId: args.clerkUserId ?? null,
+      salesOsUserId: args.salesOsUserId ?? null,
       type: args.type,
       title: args.title,
       body: args.body,

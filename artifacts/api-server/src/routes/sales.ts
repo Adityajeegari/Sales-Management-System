@@ -43,13 +43,13 @@ async function fetchCustomerName(id: number | null): Promise<string | null> {
 }
 
 async function fetchActorName(
-  clerkUserId: string | null,
+  salesOsUserId: string | null,
 ): Promise<string | null> {
-  if (!clerkUserId) return null;
+  if (!salesOsUserId) return null;
   const [u] = await db
     .select({ name: userRolesTable.name, email: userRolesTable.email })
     .from(userRolesTable)
-    .where(eq(userRolesTable.clerkUserId, clerkUserId));
+    .where(eq(userRolesTable.salesOsUserId, salesOsUserId));
   return u?.name ?? u?.email ?? null;
 }
 
@@ -83,7 +83,7 @@ router.get("/sales", requireViewer, async (req, res): Promise<void> => {
     .leftJoin(customersTable, eq(salesTable.customerId, customersTable.id))
     .leftJoin(
       userRolesTable,
-      eq(salesTable.createdByClerkId, userRolesTable.clerkUserId),
+      eq(salesTable.createdBySalesOsId, userRolesTable.salesOsUserId),
     )
     .where(conditions.length ? and(...conditions) : undefined)
     .orderBy(desc(salesTable.saleDate));
@@ -151,7 +151,7 @@ router.post("/sales", requireEditor, async (req, res): Promise<void> => {
       status: body.status,
       saleDate: body.saleDate,
       customerId: body.customerId ?? null,
-      createdByClerkId: auth.userId ?? null,
+      createdBySalesOsId: auth.userId ?? null,
       notes: body.notes ?? null,
     })
     .returning();
@@ -181,7 +181,7 @@ router.post("/sales", requireEditor, async (req, res): Promise<void> => {
   }
 
   await logActivity({
-    clerkUserId: auth.userId,
+    salesOsUserId: auth.userId,
     actorName: auth.userRole?.name,
     actorEmail: auth.userRole?.email,
     action: "create",
@@ -197,7 +197,7 @@ router.post("/sales", requireEditor, async (req, res): Promise<void> => {
   });
 
   const customerName = await fetchCustomerName(sale.customerId);
-  const actorName = await fetchActorName(sale.createdByClerkId);
+  const actorName = await fetchActorName(sale.createdBySalesOsId);
   res.status(201).json(
     GetSaleResponse.parse(serializeSale(sale, customerName, actorName)),
   );
@@ -220,7 +220,7 @@ router.get("/sales/:id", requireViewer, async (req, res): Promise<void> => {
     .leftJoin(customersTable, eq(salesTable.customerId, customersTable.id))
     .leftJoin(
       userRolesTable,
-      eq(salesTable.createdByClerkId, userRolesTable.clerkUserId),
+      eq(salesTable.createdBySalesOsId, userRolesTable.salesOsUserId),
     )
     .where(eq(salesTable.id, params.data.id));
 
@@ -283,7 +283,7 @@ router.patch("/sales/:id", requireEditor, async (req, res): Promise<void> => {
   }
   const auth = req as AuthedRequest;
   await logActivity({
-    clerkUserId: auth.userId,
+    salesOsUserId: auth.userId,
     actorName: auth.userRole?.name,
     actorEmail: auth.userRole?.email,
     action: "update",
@@ -292,7 +292,7 @@ router.patch("/sales/:id", requireEditor, async (req, res): Promise<void> => {
     summary: `Updated sale ${sale.invoiceNumber ?? sale.id}`,
   });
   const customerName = await fetchCustomerName(sale.customerId);
-  const actorName = await fetchActorName(sale.createdByClerkId);
+  const actorName = await fetchActorName(sale.createdBySalesOsId);
   res.json(
     UpdateSaleResponse.parse(serializeSale(sale, customerName, actorName)),
   );
@@ -321,7 +321,7 @@ router.delete("/sales/:id", requireDeleter, async (req, res): Promise<void> => {
   }
   const auth = req as AuthedRequest;
   await logActivity({
-    clerkUserId: auth.userId,
+    salesOsUserId: auth.userId,
     actorName: auth.userRole?.name,
     actorEmail: auth.userRole?.email,
     action: "delete",

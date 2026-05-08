@@ -4,7 +4,7 @@ export const userRoleEnum = pgEnum("user_role", ["admin", "manager", "staff"]);
 
 export const userRolesTable = pgTable("user_roles", {
   id: serial("id").primaryKey(),
-  clerkUserId: text("clerk_user_id").notNull().unique(),
+  salesOsUserId: text("clerk_user_id").notNull().unique(),
   email: text("email"),
   name: text("name"),
   role: userRoleEnum("role").notNull().default("staff"),

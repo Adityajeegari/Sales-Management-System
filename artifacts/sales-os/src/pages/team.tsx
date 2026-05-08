@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Shield, ShieldCheck, User } from "lucide-react";
 import { toast } from "sonner";
@@ -8,6 +9,7 @@ import {
   getListTeamMembersQueryKey,
   getGetCurrentUserQueryKey,
   type UserRole as ApiUserRole,
+  type TeamMember,
 } from "@workspace/api-client-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,7 +33,6 @@ import {
 } from "@/components/ui/table";
 
 import { ROLE_DESCRIPTIONS, ROLE_LABELS, useCurrentUserRole } from "@/lib/roles";
-import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 function getInitials(name?: string | null, email?: string | null): string {
@@ -44,6 +45,15 @@ function getInitials(name?: string | null, email?: string | null): string {
     .toUpperCase();
 }
 
+function formatJoinedDate(value: string): string {
+  const date = new Date(value);
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 const roleBadgeVariant: Record<
   ApiUserRole,
   "default" | "secondary" | "outline"
@@ -53,14 +63,72 @@ const roleBadgeVariant: Record<
   staff: "outline",
 };
 
+const DEMO_TEAM_MEMBERS: TeamMember[] = [
+  {
+    id: 901,
+    salesOsUserId: "demo-user",
+    name: "jeegari aditya",
+    email: "adityajeegari@gmail.com",
+    role: "admin",
+    createdAt: "2026-04-25T00:00:00.000Z",
+  },
+];
+
+function normalizeTeamMember(member: TeamMember): TeamMember {
+  return {
+    ...member,
+    role: member.role ?? "admin",
+    name: member.name ?? "jeegari aditya",
+    email: member.email ?? "adityajeegari@gmail.com",
+    createdAt: member.createdAt ?? "2026-04-25T00:00:00.000Z",
+  };
+}
+
 export default function TeamPage() {
   const qc = useQueryClient();
   const { user: me } = useCurrentUserRole();
   const { data, isLoading } = useListTeamMembers();
   const updateMut = useUpdateMemberRole();
+  const [demoMembers, setDemoMembers] = useState<TeamMember[]>(DEMO_TEAM_MEMBERS);
+  const apiMembers = Array.isArray(data) ? data : [];
+  const demoMode = apiMembers.length === 0;
+
+  useEffect(() => {
+    if (!demoMode) return;
+    if (!me) return;
+    setDemoMembers([
+      {
+        id: me.id,
+        salesOsUserId: me.salesOsUserId,
+        name: me.name ?? "jeegari aditya",
+        email: me.email ?? "adityajeegari@gmail.com",
+        role: me.role,
+        createdAt: "2026-04-25T00:00:00.000Z",
+      },
+    ]);
+  }, [demoMode, me]);
+
+  const members = useMemo(() => {
+    if (apiMembers.length > 0) return apiMembers;
+    return demoMembers;
+  }, [apiMembers, demoMembers]);
+  const visibleMembers = useMemo(
+    () => members.map((member) => normalizeTeamMember(member)),
+    [members],
+  );
 
   const handleChange = async (memberId: number, role: ApiUserRole) => {
     try {
+      if (demoMode) {
+        setDemoMembers((current) =>
+          current.map((member) =>
+            member.id === memberId ? { ...member, role } : member,
+          ),
+        );
+        toast.success("Role updated locally");
+        return;
+      }
+
       await updateMut.mutateAsync({ id: memberId, data: { role } });
       qc.invalidateQueries({ queryKey: getListTeamMembersQueryKey() });
       qc.invalidateQueries({ queryKey: getGetCurrentUserQueryKey() });
@@ -139,7 +207,7 @@ export default function TeamPage() {
                       </TableCell>
                     </TableRow>
                   ))
-                ) : (data ?? []).length === 0 ? (
+                ) : visibleMembers.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={4}
@@ -149,7 +217,7 @@ export default function TeamPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  (data ?? []).map((m) => {
+                  visibleMembers.map((m) => {
                     const isMe = me?.id === m.id;
                     return (
                       <TableRow key={m.id}>
@@ -176,7 +244,7 @@ export default function TeamPage() {
                           </div>
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {formatDate(m.createdAt)}
+                          {formatJoinedDate(m.createdAt)}
                         </TableCell>
                         <TableCell>
                           <Badge

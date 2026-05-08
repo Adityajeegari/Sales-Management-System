@@ -74,7 +74,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-import { formatCurrency, formatDate } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 import { useCurrentUserRole } from "@/lib/roles";
 import { downloadInvoicePdf } from "@/lib/pdf";
 
@@ -91,10 +91,72 @@ const PAYMENT_OPTIONS: NonNullable<SaleInput["paymentMethod"]>[] = [
   "bank_transfer",
 ];
 
+function makeDemoSale(overrides: Partial<Sale> & { id: number; productName: string; category: string; saleDate: string; total: number; quantity: number; status: Sale["status"] }): Sale {
+  const price = overrides.price ?? Math.round((overrides.total / Math.max(1, overrides.quantity)) * 100) / 100;
+  const subtotal = overrides.subtotal ?? overrides.total;
+  return {
+    id: overrides.id,
+    invoiceNumber: overrides.invoiceNumber ?? null,
+    productId: overrides.productId ?? null,
+    productName: overrides.productName,
+    category: overrides.category,
+    price,
+    quantity: overrides.quantity,
+    subtotal,
+    discountAmount: overrides.discountAmount ?? 0,
+    gstAmount: overrides.gstAmount ?? 0,
+    total: overrides.total,
+    paymentMethod: overrides.paymentMethod ?? null,
+    status: overrides.status,
+    saleDate: overrides.saleDate,
+    customerId: overrides.customerId ?? null,
+    customerName: overrides.customerName ?? null,
+    createdBySalesOsId: overrides.createdBySalesOsId ?? null,
+    createdByName: overrides.createdByName ?? null,
+    notes: overrides.notes ?? null,
+    createdAt: overrides.createdAt ?? overrides.saleDate,
+    updatedAt: overrides.updatedAt ?? overrides.saleDate,
+  };
+}
+
+const DEMO_SALES: Sale[] = [
+  makeDemoSale({ id: 24, productName: "Pro Subscription", category: "Software", customerName: "Marcus Reyes", quantity: 2, total: 398, status: "pending", saleDate: "2026-04-23T00:00:00.000Z" }),
+  makeDemoSale({ id: 23, productName: "Custom Integration", category: "Services", customerName: "Priya Iyer", quantity: 1, total: 2400, status: "pending", saleDate: "2026-04-21T00:00:00.000Z" }),
+  makeDemoSale({ id: 22, productName: "Hardware Bundle", category: "Hardware", customerName: "Olivia Carter", quantity: 1, total: 1250, status: "cancelled", saleDate: "2026-04-19T00:00:00.000Z" }),
+  makeDemoSale({ id: 19, productName: "Analytics Add-on", category: "Software", customerName: "Marcus Reyes", quantity: 6, total: 474, status: "completed", saleDate: "2026-04-13T00:00:00.000Z" }),
+  makeDemoSale({ id: 18, productName: "Pro Subscription", category: "Software", customerName: "Olivia Carter", quantity: 8, total: 1592, status: "completed", saleDate: "2026-04-12T00:00:00.000Z" }),
+  makeDemoSale({ id: 17, productName: "Hardware Bundle", category: "Hardware", customerName: "Priya Iyer", quantity: 2, total: 2500, status: "completed", saleDate: "2026-04-05T00:00:00.000Z" }),
+  makeDemoSale({ id: 16, productName: "Pro Subscription", category: "Software", customerName: "Olivia Carter", quantity: 10, total: 1990, status: "completed", saleDate: "2026-03-24T00:00:00.000Z" }),
+  makeDemoSale({ id: 15, productName: "Premium Support", category: "Services", customerName: "Olivia Carter", quantity: 2, total: 1200, status: "completed", saleDate: "2026-02-28T00:00:00.000Z" }),
+  makeDemoSale({ id: 14, productName: "Custom Integration", category: "Services", customerName: "Marcus Reyes", quantity: 1, total: 2400, status: "completed", saleDate: "2026-02-24T00:00:00.000Z" }),
+  makeDemoSale({ id: 13, productName: "Analytics Add-on", category: "Software", customerName: "Priya Iyer", quantity: 12, total: 948, status: "completed", saleDate: "2026-01-31T00:00:00.000Z" }),
+  makeDemoSale({ id: 12, productName: "Pro Subscription", category: "Software", customerName: "Olivia Carter", quantity: 7, total: 1393, status: "completed", saleDate: "2026-01-24T00:00:00.000Z" }),
+  makeDemoSale({ id: 11, productName: "Enterprise License", category: "Software", customerName: "Marcus Reyes", quantity: 1, total: 4500, status: "completed", saleDate: "2026-01-05T00:00:00.000Z" }),
+  makeDemoSale({ id: 10, productName: "Premium Support", category: "Services", customerName: "Priya Iyer", quantity: 1, total: 600, status: "completed", saleDate: "2025-12-24T00:00:00.000Z" }),
+  makeDemoSale({ id: 9, productName: "Analytics Add-on", category: "Software", customerName: "Marcus Reyes", quantity: 8, total: 632, status: "completed", saleDate: "2025-12-02T00:00:00.000Z" }),
+  makeDemoSale({ id: 8, productName: "Pro Subscription", category: "Software", customerName: "Olivia Carter", quantity: 6, total: 1194, status: "completed", saleDate: "2025-11-24T00:00:00.000Z" }),
+  makeDemoSale({ id: 7, productName: "Custom Integration", category: "Services", customerName: "Priya Iyer", quantity: 1, total: 2400, status: "completed", saleDate: "2025-11-03T00:00:00.000Z" }),
+  makeDemoSale({ id: 6, productName: "Pro Subscription", category: "Software", customerName: "Olivia Carter", quantity: 4, total: 796, status: "completed", saleDate: "2025-09-24T00:00:00.000Z" }),
+  makeDemoSale({ id: 4, productName: "Analytics Add-on", category: "Software", customerName: "Priya Iyer", quantity: 5, total: 395, status: "completed", saleDate: "2025-09-05T00:00:00.000Z" }),
+  makeDemoSale({ id: 3, productName: "Enterprise License", category: "Software", customerName: "Marcus Reyes", quantity: 1, total: 4500, status: "completed", saleDate: "2025-08-24T00:00:00.000Z" }),
+  makeDemoSale({ id: 2, productName: "Pro Subscription", category: "Software", customerName: "Olivia Carter", quantity: 3, total: 597, status: "completed", saleDate: "2025-07-24T00:00:00.000Z" }),
+  makeDemoSale({ id: 2_1, productName: "Team Onboarding", category: "Services", customerName: "Marcus Reyes", quantity: 1, total: 1500, status: "completed", saleDate: "2025-06-26T00:00:00.000Z" }),
+  makeDemoSale({ id: 1, productName: "Pro Subscription", category: "Software", customerName: "Olivia Carter", quantity: 1, total: 199, status: "completed", saleDate: "2025-05-29T00:00:00.000Z" }),
+];
+
 function todayISO(): string {
   const now = new Date();
   const tzOffset = now.getTimezoneOffset() * 60000;
   return new Date(now.getTime() - tzOffset).toISOString().slice(0, 10);
+}
+
+function formatSalesDate(value: string): string {
+  const date = new Date(value);
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 function invalidateAllSalesData(qc: ReturnType<typeof useQueryClient>) {
@@ -114,16 +176,22 @@ function SaleDialog({
   open,
   onOpenChange,
   sale,
+  demoMode,
+  onDemoSalesChange,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   sale: Sale | null;
+  demoMode: boolean;
+  onDemoSalesChange: React.Dispatch<React.SetStateAction<Sale[]>>;
 }) {
   const qc = useQueryClient();
   const customersQ = useListCustomers();
   const productsQ = useListProducts();
   const createMut = useCreateSale();
   const updateMut = useUpdateSale();
+  const products = Array.isArray(productsQ.data) ? productsQ.data : [];
+  const customers = Array.isArray(customersQ.data) ? customersQ.data : [];
 
   const [productId, setProductId] = useState<string>(
     sale?.productId ? String(sale.productId) : "manual",
@@ -168,15 +236,13 @@ function SaleDialog({
   // Auto-fill from product
   useEffect(() => {
     if (productId === "manual") return;
-    const p = (productsQ.data ?? []).find(
-      (pr) => String(pr.id) === productId,
-    );
+    const p = products.find((pr) => String(pr.id) === productId);
     if (p) {
       setProductName(p.name);
       setCategory(p.category);
       setPrice(String(p.price));
     }
-  }, [productId, productsQ.data]);
+  }, [productId, products]);
 
   const subtotal = Number(price || 0) * Number(quantity || 0);
   const discountNum = Math.max(0, Number(discount || 0));
@@ -202,6 +268,43 @@ function SaleDialog({
     };
 
     try {
+      if (demoMode) {
+        const nextSale: Sale = {
+          id: sale?.id ?? Date.now(),
+          invoiceNumber: sale?.invoiceNumber ?? null,
+          productId: body.productId,
+          productName: body.productName,
+          category: body.category,
+          price: body.price,
+          quantity: body.quantity,
+          subtotal,
+          discountAmount: discountNum,
+          gstAmount: gstNum,
+          total,
+          paymentMethod: body.paymentMethod,
+          status: body.status,
+          saleDate: new Date(body.saleDate).toISOString(),
+          customerId: body.customerId,
+          customerName:
+            customers.find((customer) => customer.id === body.customerId)
+              ?.name ?? sale?.customerName ?? null,
+          createdBySalesOsId: sale?.createdBySalesOsId ?? null,
+          createdByName: sale?.createdByName ?? null,
+          notes: body.notes,
+          createdAt: sale?.createdAt ?? new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        onDemoSalesChange((current) =>
+          sale
+            ? current.map((item) => (item.id === sale.id ? nextSale : item))
+            : [nextSale, ...current],
+        );
+        toast.success(sale ? "Sale updated locally" : "Sale created locally");
+        onOpenChange(false);
+        return;
+      }
+
       if (isEdit && sale) {
         await updateMut.mutateAsync({ id: sale.id, data: body });
         toast.success("Sale updated");
@@ -236,7 +339,7 @@ function SaleDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="manual">Custom (no inventory)</SelectItem>
-                {(productsQ.data ?? []).map((p) => (
+                {products.map((p) => (
                   <SelectItem key={p.id} value={String(p.id)}>
                     {p.name} — {formatCurrency(p.price, true)} ({p.stock} in
                     stock)
@@ -369,7 +472,7 @@ function SaleDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Walk-in / none</SelectItem>
-                  {(customersQ.data ?? []).map((c) => (
+                  {customers.map((c) => (
                     <SelectItem key={c.id} value={String(c.id)}>
                       {c.name}
                     </SelectItem>
@@ -432,6 +535,9 @@ export default function SalesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Sale | null>(null);
   const [deleting, setDeleting] = useState<Sale | null>(null);
+  const [demoSales, setDemoSales] = useState<Sale[]>(() =>
+    DEMO_SALES.map((sale) => ({ ...sale })),
+  );
 
   const params = useMemo(
     () => ({
@@ -446,10 +552,34 @@ export default function SalesPage() {
 
   const { data: sales, isLoading } = useListSales(params);
   const deleteMut = useDeleteSale();
+  const apiSales = Array.isArray(sales) ? sales : [];
+  const demoMode = !isLoading && apiSales.length === 0;
+  const baseSales = apiSales.length > 0 ? apiSales : demoSales;
+  const query = search.trim().toLowerCase();
+  const salesList = baseSales.filter((s) => {
+    const statusOk = statusFilter === "all" || s.status === statusFilter;
+    if (!statusOk) return false;
+    if (!query) return true;
+    const haystack = [
+      s.productName,
+      s.category,
+      s.customerName ?? "",
+      s.invoiceNumber ?? `#${s.id}`,
+    ]
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(query);
+  });
 
   const handleDelete = async () => {
     if (!deleting) return;
     try {
+      if (demoMode) {
+        setDemoSales((current) => current.filter((sale) => sale.id !== deleting.id));
+        toast.success("Sale deleted locally");
+        return;
+      }
+
       await deleteMut.mutateAsync({ id: deleting.id });
       toast.success("Sale deleted");
       invalidateAllSalesData(qc);
@@ -552,7 +682,7 @@ export default function SalesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoading ? (
+                {isLoading && apiSales.length === 0 ? (
                   Array.from({ length: 6 }).map((_, i) => (
                     <TableRow key={i}>
                       <TableCell colSpan={9}>
@@ -560,7 +690,7 @@ export default function SalesPage() {
                       </TableCell>
                     </TableRow>
                   ))
-                ) : (sales ?? []).length === 0 ? (
+                ) : salesList.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={9}
@@ -570,7 +700,7 @@ export default function SalesPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  (sales ?? []).map((s) => (
+                  salesList.map((s) => (
                     <TableRow key={s.id}>
                       <TableCell className="font-mono text-xs">
                         {s.invoiceNumber ?? `#${s.id}`}
@@ -606,13 +736,13 @@ export default function SalesPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {formatDate(s.saleDate)}
+                        {formatSalesDate(s.saleDate)}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"
                           size="icon"
-                          title="Download invoice"
+                          title="Invoice"
                           onClick={() => handleInvoice(s.id)}
                         >
                           <FileDown className="h-3.5 w-3.5" />
@@ -627,15 +757,13 @@ export default function SalesPage() {
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                        {canDeleteSales && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeleting(s)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeleting(s)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -652,6 +780,8 @@ export default function SalesPage() {
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           sale={editing}
+          demoMode={demoMode}
+          onDemoSalesChange={setDemoSales}
         />
       )}
 

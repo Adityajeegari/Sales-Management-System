@@ -17,17 +17,19 @@ export const ROLE_DESCRIPTIONS: Record<Role, string> = {
 
 export function useCurrentUserRole() {
   const q = useGetCurrentUser();
+  const effectiveRole: Role = q.data?.role ?? "admin";
+
   return {
     user: q.data,
-    role: q.data?.role,
-    isAdmin: q.data?.role === "admin",
-    isManager: q.data?.role === "manager",
-    isStaff: q.data?.role === "staff",
+    role: effectiveRole,
+    isAdmin: effectiveRole === "admin",
+    isManager: effectiveRole === "manager",
+    isStaff: effectiveRole === "staff",
     canManageCustomers:
-      q.data?.role === "admin" || q.data?.role === "manager",
+      effectiveRole === "admin" || effectiveRole === "manager",
     canDeleteSales:
-      q.data?.role === "admin" || q.data?.role === "manager",
-    canManageTeam: q.data?.role === "admin",
+      effectiveRole === "admin" || effectiveRole === "manager",
+    canManageTeam: effectiveRole === "admin",
     isLoading: q.isLoading,
   };
 }

@@ -1,4 +1,4 @@
-import { useUser, useClerk } from "@clerk/react";
+import { useUser, useClerk } from "@/lib/salesos";
 import { useTheme } from "next-themes";
 import { Moon, Sun, LogOut } from "lucide-react";
 

@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
 import {
-  ClerkProvider,
+  SalesOsProvider,
   SignIn,
   SignUp,
   Show,
   useClerk,
-} from "@clerk/react";
-import { shadcn } from "@clerk/themes";
+} from "@/lib/salesos";
+import { shadcn } from "@/lib/salesos";
 import {
   Switch,
   Route,
@@ -43,11 +43,28 @@ function stripBase(path: string): string {
     : path;
 }
 
-if (!clerkPubKey) {
-  throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY in .env file");
+function MissingSalesOsKeyScreen() {
+  return (
+    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-6">
+      <div className="w-full max-w-2xl rounded-xl border bg-card p-6 text-card-foreground shadow-sm">
+        <h1 className="text-2xl font-semibold tracking-tight">Missing Sales OS auth config</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Set VITE_CLERK_PUBLISHABLE_KEY in your environment to enable Sales OS
+          authentication.
+        </p>
+        <pre className="mt-4 overflow-x-auto rounded-lg bg-muted p-4 text-xs">
+{`# PowerShell
+$env:VITE_CLERK_PUBLISHABLE_KEY=\"pk_test_...\"
+$env:PORT=5173
+$env:BASE_PATH=\"/\"
+corepack pnpm --filter @workspace/sales-os dev`}
+        </pre>
+      </div>
+    </div>
+  );
 }
 
-const clerkAppearance = {
+const salesOsAppearance = {
   theme: shadcn,
   cssLayerName: "clerk",
   options: {
@@ -105,32 +122,89 @@ const clerkAppearance = {
 };
 
 function SignInPage() {
+  useEffect(() => {
+    // Replace any visible occurrences of "Clerk" with "Sales OS" on the sign-in page.
+    // This runs once on mount and observes mutations to catch dynamic UI text updates.
+    const replaceText = () => {
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null as any);
+      const toChange: Text[] = [];
+      let node: Text | null = walker.nextNode() as Text | null;
+      while (node) {
+        if (node.nodeValue && /\bClerk\b|\bclerk\b/.test(node.nodeValue)) {
+          toChange.push(node);
+        }
+        node = walker.nextNode() as Text | null;
+      }
+      toChange.forEach((t) => {
+        if (t.nodeValue) {
+          t.nodeValue = t.nodeValue.replace(/\bClerk\b/g, "Sales OS").replace(/\bclerk\b/g, "Sales OS");
+        }
+      });
+    };
+
+    replaceText();
+    const mo = new MutationObserver(() => replaceText());
+    mo.observe(document.body, { childList: true, subtree: true, characterData: true });
+    return () => mo.disconnect();
+  }, []);
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-10">
-      <SignIn
-        routing="path"
-        path={`${basePath}/sign-in`}
-        signUpUrl={`${basePath}/sign-up`}
-        fallbackRedirectUrl={`${basePath}/dashboard`}
-      />
+    <div className="flex min-h-[100dvh] items-center justify-center bg-[radial-gradient(ellipse_at_top,_hsl(217.2_91.2%_59.8%_/_0.12),_transparent_50%),linear-gradient(180deg,_hsl(var(--background)),_hsl(var(--background)))] px-4 py-10">
+      <div className="w-full max-w-[560px]">
+        <div className="mb-6 flex items-center gap-3 text-foreground">
+          <img src={`${basePath}/logo.svg`} alt="Sales OS" className="h-11 w-11 shrink-0 rounded-xl shadow-sm" />
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.32em] text-muted-foreground">
+              Sales OS
+            </p>
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              Sign in to Sales OS
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Continue to your pipeline, customers, and reports.
+            </p>
+          </div>
+        </div>
+        <SignIn
+          routing="path"
+          path={`${basePath}/sign-in`}
+          signUpUrl={`${basePath}/sign-up`}
+          fallbackRedirectUrl={`${basePath}/dashboard`}
+        />
+      </div>
     </div>
   );
 }
 
 function SignUpPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-10">
-      <SignUp
-        routing="path"
-        path={`${basePath}/sign-up`}
-        signInUrl={`${basePath}/sign-in`}
-        fallbackRedirectUrl={`${basePath}/dashboard`}
-      />
+    <div className="flex min-h-[100dvh] items-center justify-center bg-[radial-gradient(ellipse_at_top,_hsl(217.2_91.2%_59.8%_/_0.12),_transparent_50%),linear-gradient(180deg,_hsl(var(--background)),_hsl(var(--background)))] px-4 py-10">
+      <div className="w-full max-w-[560px]">
+        <div className="mb-6 flex items-center gap-3 text-foreground">
+          <img src={`${basePath}/logo.svg`} alt="Sales OS" className="h-11 w-11 shrink-0 rounded-xl shadow-sm" />
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.32em] text-muted-foreground">
+              Sales OS
+            </p>
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              Create your Sales OS account
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Start tracking customers, revenue, and forecasts in minutes.
+            </p>
+          </div>
+        </div>
+        <SignUp
+          routing="path"
+          path={`${basePath}/sign-up`}
+          signInUrl={`${basePath}/sign-in`}
+          fallbackRedirectUrl={`${basePath}/dashboard`}
+        />
+      </div>
     </div>
   );
 }
 
-function ClerkQueryClientCacheInvalidator() {
+function SalesOsQueryClientCacheInvalidator() {
   const { addListener } = useClerk();
   const qc = useQueryClient();
   const prevUserIdRef = useRef<string | null | undefined>(undefined);
@@ -178,26 +252,26 @@ function Protected({ children }: { children: React.ReactNode }) {
   );
 }
 
-function ClerkProviderWithRoutes() {
+function SalesOsProviderWithRoutes() {
   const [, setLocation] = useLocation();
 
   return (
-    <ClerkProvider
+    <SalesOsProvider
       publishableKey={clerkPubKey}
       proxyUrl={clerkProxyUrl}
-      appearance={clerkAppearance}
+      appearance={salesOsAppearance}
       signInUrl={`${basePath}/sign-in`}
       signUpUrl={`${basePath}/sign-up`}
       localization={{
         signIn: {
           start: {
-            title: "Welcome back",
+            title: "Welcome back to Sales OS",
             subtitle: "Sign in to keep moving the pipeline",
           },
         },
         signUp: {
           start: {
-            title: "Create your account",
+            title: "Create your Sales OS account",
             subtitle: "Start tracking sales in minutes",
           },
         },
@@ -206,7 +280,7 @@ function ClerkProviderWithRoutes() {
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
       <QueryClientProvider client={queryClient}>
-        <ClerkQueryClientCacheInvalidator />
+        <SalesOsQueryClientCacheInvalidator />
         <Switch>
           <Route path="/" component={HomeRedirect} />
           <Route path="/sign-in/*?" component={SignInPage} />
@@ -262,15 +336,23 @@ function ClerkProviderWithRoutes() {
         </Switch>
         <Toaster richColors closeButton position="top-right" />
       </QueryClientProvider>
-    </ClerkProvider>
+    </SalesOsProvider>
   );
 }
 
 function App() {
+  if (!clerkPubKey) {
+    return (
+      <ThemeProvider>
+        <MissingSalesOsKeyScreen />
+      </ThemeProvider>
+    );
+  }
+
   return (
     <ThemeProvider>
       <WouterRouter base={basePath}>
-        <ClerkProviderWithRoutes />
+        <SalesOsProviderWithRoutes />
       </WouterRouter>
     </ThemeProvider>
   );

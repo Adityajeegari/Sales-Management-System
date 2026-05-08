@@ -322,6 +322,41 @@ async function parseSuccessBody(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Dev-mode mock data (when API is unavailable)
+// ---------------------------------------------------------------------------
+
+function getMockData(url: string, method: string, body?: string): unknown {
+  // Parse URL to get resource type and ID
+  const urlPath = url.replace(/^.*\/api/, "").split("?")[0];
+
+  // Health check
+  if (urlPath === "/healthz") {
+    return { status: "ok" };
+  }
+
+  // For mutations (POST/PATCH/DELETE), return the posted data back or a success response
+  if (method !== "GET" && body) {
+    try {
+      return JSON.parse(body);
+    } catch {
+      return { success: true };
+    }
+  }
+
+  // For GET list endpoints, return empty array
+  if (urlPath.match(/^\/(sales|customers|products|users|targets|analytics|activity)(\?|$)/)) {
+    return [];
+  }
+
+  // For GET by ID, return null or empty object
+  if (method === "GET") {
+    return null;
+  }
+
+  return { success: true };
+}
+
 export async function customFetch<T = unknown>(
   input: RequestInfo | URL,
   options: CustomFetchOptions = {},
@@ -360,7 +395,17 @@ export async function customFetch<T = unknown>(
 
   const requestInfo = { method, url: resolveUrl(input) };
 
-  const response = await fetch(input, { ...init, method, headers });
+  let response: Response;
+  try {
+    response = await fetch(input, { ...init, method, headers });
+  } catch (err) {
+    // Network error (API unavailable) — fall back to mock data in dev mode
+    if (typeof window !== "undefined" && window.location.hostname === "localhost") {
+      const mockData = getMockData(requestInfo.url, method, init.body as string);
+      return mockData as T;
+    }
+    throw err;
+  }
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);

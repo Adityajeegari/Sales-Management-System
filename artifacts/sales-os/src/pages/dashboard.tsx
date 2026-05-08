@@ -59,6 +59,119 @@ const CHART_COLORS = [
   "hsl(340, 75%, 55%)",
 ];
 
+const DEMO_SUMMARY = {
+  totalRevenue: 32608,
+  monthlyRevenue: 7364,
+  monthlySalesCount: 5,
+  activeCustomers: 3,
+  revenueGrowthPercent: 270.1,
+  averageOrderValue: 1472.8,
+  pendingOrders: 2,
+};
+
+const DEMO_LOW_STOCK = [
+  { id: 1, name: 'Laptop Sleeve 14"', sku: "ACC-LS14-010", stock: 9 },
+  { id: 2, name: "Notebook A5 Hardcover", sku: "STA-NHC-007", stock: 4 },
+  { id: 3, name: "USB-C Hub 7-in-1", sku: "HUB-USC7-003", stock: 7 },
+];
+
+const DEMO_TREND = [
+  { period: "2025-05", revenue: 1200, orders: 1 },
+  { period: "2025-06", revenue: 2100, orders: 2 },
+  { period: "2025-07", revenue: 1400, orders: 1 },
+  { period: "2025-08", revenue: 4600, orders: 3 },
+  { period: "2025-09", revenue: 900, orders: 1 },
+  { period: "2025-10", revenue: 700, orders: 1 },
+  { period: "2025-11", revenue: 3900, orders: 3 },
+  { period: "2025-12", revenue: 1200, orders: 1 },
+  { period: "2026-01", revenue: 7100, orders: 4 },
+  { period: "2026-02", revenue: 4200, orders: 3 },
+  { period: "2026-03", revenue: 2600, orders: 2 },
+  { period: "2026-04", revenue: 7364, orders: 5 },
+];
+
+const DEMO_CATEGORY = [
+  { category: "Software", revenue: 12400, orders: 16 },
+  { category: "Services", revenue: 10300, orders: 7 },
+  { category: "Hardware", revenue: 9908, orders: 9 },
+];
+
+const DEMO_RECENT = [
+  {
+    id: 1,
+    productName: "Pro Subscription",
+    customerName: "Marcus Reyes",
+    status: "pending" as const,
+    total: 398,
+    saleDate: "2026-04-23T00:00:00.000Z",
+  },
+  {
+    id: 2,
+    productName: "Custom Integration",
+    customerName: "Priya Iyer",
+    status: "pending" as const,
+    total: 2400,
+    saleDate: "2026-04-21T00:00:00.000Z",
+  },
+  {
+    id: 3,
+    productName: "Hardware Bundle",
+    customerName: "Olivia Carter",
+    status: "cancelled" as const,
+    total: 1250,
+    saleDate: "2026-04-19T00:00:00.000Z",
+  },
+  {
+    id: 4,
+    productName: "Analytics Add-on",
+    customerName: "Marcus Reyes",
+    status: "completed" as const,
+    total: 474,
+    saleDate: "2026-04-18T00:00:00.000Z",
+  },
+  {
+    id: 5,
+    productName: "Pro Subscription",
+    customerName: "Olivia Carter",
+    status: "completed" as const,
+    total: 1592,
+    saleDate: "2026-04-12T00:00:00.000Z",
+  },
+  {
+    id: 6,
+    productName: "Hardware Bundle",
+    customerName: "Priya Iyer",
+    status: "completed" as const,
+    total: 2500,
+    saleDate: "2026-04-05T00:00:00.000Z",
+  },
+];
+
+const DEMO_TOP_PRODUCTS = [
+  { productName: "Enterprise License", quantitySold: 2, revenue: 9000 },
+  { productName: "Pro Subscription", quantitySold: 41, revenue: 8159 },
+  { productName: "Custom Integration", quantitySold: 3, revenue: 7200 },
+  { productName: "Hardware Bundle", quantitySold: 4, revenue: 3750 },
+  { productName: "Analytics Add-on", quantitySold: 21, revenue: 4449 },
+];
+
+const DEMO_EMPLOYEE_PERFORMANCE = [
+  {
+    salesOsUserId: "demo-admin",
+    name: "jeegari aditya",
+    email: "adityajeegari6@gmail.com",
+    salesCount: 25,
+    revenue: 32608,
+    averageOrderValue: 1304.32,
+  },
+];
+
+const DEMO_FORECAST = [
+  { period: "2026-05", projectedRevenue: 5892 },
+  { period: "2026-06", projectedRevenue: 6403 },
+  { period: "2026-07", projectedRevenue: 6914 },
+];
+
 interface KpiCardProps {
   label: string;
   value: string;
@@ -120,6 +233,35 @@ export default function Dashboard() {
   const lowStockQ = useListProducts({ lowStockOnly: true });
 
   const summary = summaryQ.data;
+  const hasSummary =
+    !!summary &&
+    typeof summary === "object" &&
+    Number((summary as { totalRevenue?: number }).totalRevenue ?? 0) > 0;
+
+  const summaryView = hasSummary ? summary : DEMO_SUMMARY;
+  const lowStockData = Array.isArray(lowStockQ.data) ? lowStockQ.data : [];
+  const trendData = Array.isArray(trendQ.data) ? trendQ.data : [];
+  const categoryData = Array.isArray(categoryQ.data) ? categoryQ.data : [];
+  const recentData = Array.isArray(recentQ.data) ? recentQ.data : [];
+  const topProductsData = Array.isArray(topProductsQ.data)
+    ? topProductsQ.data
+    : [];
+  const employeePerformanceData = Array.isArray(empPerfQ.data)
+    ? empPerfQ.data
+    : [];
+  const forecastData = Array.isArray(forecastQ.data) ? forecastQ.data : [];
+
+  const lowStock = lowStockData.length > 0 ? lowStockData : DEMO_LOW_STOCK;
+  const trend = trendData.length > 0 ? trendData : DEMO_TREND;
+  const category = categoryData.length > 0 ? categoryData : DEMO_CATEGORY;
+  const recent = recentData.length > 0 ? recentData : DEMO_RECENT;
+  const topProducts =
+    topProductsData.length > 0 ? topProductsData : DEMO_TOP_PRODUCTS;
+  const employeePerformance =
+    employeePerformanceData.length > 0
+      ? employeePerformanceData
+      : DEMO_EMPLOYEE_PERFORMANCE;
+  const forecast = forecastData.length > 0 ? forecastData : DEMO_FORECAST;
 
   return (
     <div className="space-y-6">
@@ -152,23 +294,23 @@ export default function Dashboard() {
         {[
           {
             label: "Total revenue",
-            value: formatCurrency(summary?.totalRevenue ?? 0),
+            value: formatCurrency(summaryView.totalRevenue ?? 0),
             icon: Wallet,
           },
           {
             label: "This month",
-            value: formatCurrency(summary?.monthlyRevenue ?? 0),
-            delta: summary?.revenueGrowthPercent,
+            value: formatCurrency(summaryView.monthlyRevenue ?? 0),
+            delta: summaryView.revenueGrowthPercent,
             icon: TrendingUp,
           },
           {
             label: "Orders this month",
-            value: formatNumber(summary?.monthlySalesCount ?? 0),
+            value: formatNumber(summaryView.monthlySalesCount ?? 0),
             icon: ShoppingBag,
           },
           {
             label: "Active customers",
-            value: formatNumber(summary?.activeCustomers ?? 0),
+            value: formatNumber(summaryView.activeCustomers ?? 0),
             icon: Users,
           },
           {
@@ -196,7 +338,7 @@ export default function Dashboard() {
                 value={card.value}
                 delta={card.delta}
                 icon={card.icon}
-                loading={summaryQ.isLoading}
+                loading={summaryQ.isLoading && hasSummary}
               />
             </motion.div>
           ))}
@@ -218,15 +360,15 @@ export default function Dashboard() {
             </Button>
           </CardHeader>
           <CardContent>
-            {lowStockQ.isLoading ? (
+            {lowStockQ.isLoading && lowStockData.length === 0 ? (
               <Skeleton className="h-24 w-full" />
-            ) : (lowStockQ.data ?? []).length === 0 ? (
+            ) : lowStock.length === 0 ? (
               <p className="py-6 text-center text-sm text-muted-foreground">
                 Inventory is healthy.
               </p>
             ) : (
               <ul className="space-y-2">
-                {(lowStockQ.data ?? []).slice(0, 5).map((p) => (
+                {lowStock.slice(0, 5).map((p) => (
                   <li
                     key={p.id}
                     className="flex items-center justify-between rounded-md border p-2 text-sm"
@@ -256,12 +398,12 @@ export default function Dashboard() {
             <span className="text-xs text-muted-foreground">Last 12 months</span>
           </CardHeader>
           <CardContent className="h-[280px] pl-0">
-            {trendQ.isLoading ? (
+            {trendQ.isLoading && trendData.length === 0 ? (
               <Skeleton className="h-full w-full" />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={(trendQ.data ?? []).map((p) => ({
+                  data={trend.map((p) => ({
                     name: formatShortMonth(p.period),
                     revenue: p.revenue,
                     orders: p.orders,
@@ -328,9 +470,9 @@ export default function Dashboard() {
             <span className="text-xs text-muted-foreground">Revenue mix</span>
           </CardHeader>
           <CardContent className="h-[280px]">
-            {categoryQ.isLoading ? (
+            {categoryQ.isLoading && categoryData.length === 0 ? (
               <Skeleton className="h-full w-full" />
-            ) : (categoryQ.data ?? []).length === 0 ? (
+            ) : category.length === 0 ? (
               <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                 No data yet
               </div>
@@ -339,7 +481,7 @@ export default function Dashboard() {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={categoryQ.data}
+                      data={category}
                       dataKey="revenue"
                       nameKey="category"
                       innerRadius={50}
@@ -347,7 +489,7 @@ export default function Dashboard() {
                       paddingAngle={2}
                       stroke="none"
                     >
-                      {(categoryQ.data ?? []).map((_, idx) => (
+                      {category.map((_, idx) => (
                         <Cell
                           key={idx}
                           fill={CHART_COLORS[idx % CHART_COLORS.length]}
@@ -366,7 +508,7 @@ export default function Dashboard() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="space-y-2">
-                  {(categoryQ.data ?? []).slice(0, 5).map((c, idx) => (
+                  {category.slice(0, 5).map((c, idx) => (
                     <div key={c.category} className="flex items-center gap-2">
                       <span
                         className="h-2 w-2 rounded-full"
@@ -397,19 +539,19 @@ export default function Dashboard() {
             </Button>
           </CardHeader>
           <CardContent>
-            {recentQ.isLoading ? (
+            {recentQ.isLoading && recentData.length === 0 ? (
               <div className="space-y-3">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Skeleton key={i} className="h-12 w-full" />
                 ))}
               </div>
-            ) : (recentQ.data ?? []).length === 0 ? (
+            ) : recent.length === 0 ? (
               <div className="py-10 text-center text-sm text-muted-foreground">
                 No sales recorded yet.
               </div>
             ) : (
               <div className="divide-y">
-                {(recentQ.data ?? []).map((s) => (
+                {recent.map((s) => (
                   <div
                     key={s.id}
                     className="flex items-center justify-between gap-3 py-3"
@@ -450,19 +592,19 @@ export default function Dashboard() {
             <span className="text-xs text-muted-foreground">By revenue</span>
           </CardHeader>
           <CardContent>
-            {topProductsQ.isLoading ? (
+            {topProductsQ.isLoading && topProductsData.length === 0 ? (
               <div className="space-y-3">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Skeleton key={i} className="h-10 w-full" />
                 ))}
               </div>
-            ) : (topProductsQ.data ?? []).length === 0 ? (
+            ) : topProducts.length === 0 ? (
               <div className="py-10 text-center text-sm text-muted-foreground">
                 Not enough data yet.
               </div>
             ) : (
               <ol className="space-y-3">
-                {(topProductsQ.data ?? []).map((p, idx) => (
+                {topProducts.map((p, idx) => (
                   <li
                     key={p.productName}
                     className="flex items-center justify-between gap-3"
@@ -499,17 +641,17 @@ export default function Dashboard() {
           </p>
         </CardHeader>
         <CardContent>
-          {empPerfQ.isLoading ? (
+          {empPerfQ.isLoading && employeePerformanceData.length === 0 ? (
             <Skeleton className="h-32 w-full" />
-          ) : (empPerfQ.data ?? []).length === 0 ? (
+          ) : employeePerformance.length === 0 ? (
             <p className="py-6 text-center text-sm text-muted-foreground">
               No sales attributed yet.
             </p>
           ) : (
             <ul className="space-y-3">
-              {(empPerfQ.data ?? []).slice(0, 6).map((e, idx) => (
+              {employeePerformance.slice(0, 6).map((e, idx) => (
                 <li
-                  key={e.clerkUserId ?? `unknown-${idx}`}
+                  key={e.salesOsUserId ?? `unknown-${idx}`}
                   className="flex items-center justify-between gap-3"
                 >
                   <div className="flex min-w-0 items-center gap-3">
@@ -548,7 +690,7 @@ export default function Dashboard() {
           <Badge variant="outline">Beta</Badge>
         </CardHeader>
         <CardContent>
-          {forecastQ.isLoading ? (
+          {forecastQ.isLoading && forecastData.length === 0 ? (
             <div className="grid gap-3 md:grid-cols-3">
               {Array.from({ length: 3 }).map((_, i) => (
                 <Skeleton key={i} className="h-24 w-full" />
@@ -556,7 +698,7 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="grid gap-3 md:grid-cols-3">
-              {(forecastQ.data ?? []).map((f) => (
+              {forecast.map((f) => (
                 <div
                   key={f.period}
                   className="rounded-xl border bg-muted/30 p-4"

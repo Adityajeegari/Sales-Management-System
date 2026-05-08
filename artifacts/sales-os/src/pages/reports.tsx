@@ -6,6 +6,9 @@ import {
   useGetYearlyReport,
   useGetEmployeePerformance,
   useGetProfitLoss,
+  type EmployeePerformance,
+  type ProfitLossRow,
+  type ReportRow,
 } from "@workspace/api-client-react";
 
 import { Button } from "@/components/ui/button";
@@ -69,15 +72,253 @@ function GrowthCell({ value }: { value: number }) {
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - i);
 
+const DEMO_MONTHLY_2026: ReportRow[] = [
+  {
+    period: "2026-01",
+    revenue: 6841,
+    orders: 3,
+    averageOrderValue: 2280.33,
+    growthPercent: 0,
+  },
+  {
+    period: "2026-02",
+    revenue: 3600,
+    orders: 2,
+    averageOrderValue: 1800,
+    growthPercent: -47.4,
+  },
+  {
+    period: "2026-03",
+    revenue: 1990,
+    orders: 1,
+    averageOrderValue: 1990,
+    growthPercent: -44.7,
+  },
+  {
+    period: "2026-04",
+    revenue: 7364,
+    orders: 5,
+    averageOrderValue: 1472.8,
+    growthPercent: 270.1,
+  },
+  {
+    period: "2026-05",
+    revenue: 0,
+    orders: 0,
+    averageOrderValue: 0,
+    growthPercent: -100,
+  },
+  {
+    period: "2026-06",
+    revenue: 0,
+    orders: 0,
+    averageOrderValue: 0,
+    growthPercent: 0,
+  },
+  {
+    period: "2026-07",
+    revenue: 0,
+    orders: 0,
+    averageOrderValue: 0,
+    growthPercent: 0,
+  },
+  {
+    period: "2026-08",
+    revenue: 0,
+    orders: 0,
+    averageOrderValue: 0,
+    growthPercent: 0,
+  },
+  {
+    period: "2026-09",
+    revenue: 0,
+    orders: 0,
+    averageOrderValue: 0,
+    growthPercent: 0,
+  },
+  {
+    period: "2026-10",
+    revenue: 0,
+    orders: 0,
+    averageOrderValue: 0,
+    growthPercent: 0,
+  },
+  {
+    period: "2026-11",
+    revenue: 0,
+    orders: 0,
+    averageOrderValue: 0,
+    growthPercent: 0,
+  },
+  {
+    period: "2026-12",
+    revenue: 0,
+    orders: 0,
+    averageOrderValue: 0,
+    growthPercent: 0,
+  },
+];
+
+const DEMO_YEARLY: ReportRow[] = [
+  {
+    period: "2026",
+    revenue: 19795,
+    orders: 11,
+    averageOrderValue: 1799.55,
+    growthPercent: 0,
+  },
+  {
+    period: "2025",
+    revenue: 16020,
+    orders: 9,
+    averageOrderValue: 1780,
+    growthPercent: -19.1,
+  },
+];
+
+const DEMO_EMPLOYEE: EmployeePerformance[] = [
+  {
+    salesOsUserId: "demo-olivia",
+    name: "Olivia Carter",
+    email: "olivia@northstar.io",
+    salesCount: 9,
+    revenue: 10211,
+    averageOrderValue: 1134.56,
+  },
+  {
+    salesOsUserId: "demo-priya",
+    name: "Priya Iyer",
+    email: "priya@kindlework.com",
+    salesCount: 6,
+    revenue: 9243,
+    averageOrderValue: 1540.5,
+  },
+  {
+    salesOsUserId: "demo-marcus",
+    name: "Marcus Reyes",
+    email: "marcus@helio.dev",
+    salesCount: 7,
+    revenue: 14404,
+    averageOrderValue: 2057.71,
+  },
+];
+
+const DEMO_PL_2026: ProfitLossRow[] = [
+  {
+    period: "2026-01",
+    revenue: 6841,
+    cost: 4090,
+    profit: 2751,
+    marginPercent: 40.2,
+  },
+  {
+    period: "2026-02",
+    revenue: 3600,
+    cost: 2140,
+    profit: 1460,
+    marginPercent: 40.6,
+  },
+  {
+    period: "2026-03",
+    revenue: 1990,
+    cost: 1270,
+    profit: 720,
+    marginPercent: 36.2,
+  },
+  {
+    period: "2026-04",
+    revenue: 7364,
+    cost: 4282,
+    profit: 3082,
+    marginPercent: 41.9,
+  },
+  {
+    period: "2026-05",
+    revenue: 0,
+    cost: 0,
+    profit: 0,
+    marginPercent: 0,
+  },
+  {
+    period: "2026-06",
+    revenue: 0,
+    cost: 0,
+    profit: 0,
+    marginPercent: 0,
+  },
+  {
+    period: "2026-07",
+    revenue: 0,
+    cost: 0,
+    profit: 0,
+    marginPercent: 0,
+  },
+  {
+    period: "2026-08",
+    revenue: 0,
+    cost: 0,
+    profit: 0,
+    marginPercent: 0,
+  },
+  {
+    period: "2026-09",
+    revenue: 0,
+    cost: 0,
+    profit: 0,
+    marginPercent: 0,
+  },
+  {
+    period: "2026-10",
+    revenue: 0,
+    cost: 0,
+    profit: 0,
+    marginPercent: 0,
+  },
+  {
+    period: "2026-11",
+    revenue: 0,
+    cost: 0,
+    profit: 0,
+    marginPercent: 0,
+  },
+  {
+    period: "2026-12",
+    revenue: 0,
+    cost: 0,
+    profit: 0,
+    marginPercent: 0,
+  },
+];
+
 export default function ReportsPage() {
   const [year, setYear] = useState<number>(CURRENT_YEAR);
   const monthlyQ = useGetMonthlyReport({ year });
   const yearlyQ = useGetYearlyReport();
   const empQ = useGetEmployeePerformance();
   const plQ = useGetProfitLoss({ year });
+  const monthlyData = Array.isArray(monthlyQ.data) ? monthlyQ.data : [];
+  const yearlyData = Array.isArray(yearlyQ.data) ? yearlyQ.data : [];
+  const employeeData = Array.isArray(empQ.data) ? empQ.data : [];
+  const profitLossData = Array.isArray(plQ.data) ? plQ.data : [];
+
+  const monthlyRows =
+    monthlyData.length > 0
+      ? monthlyData
+      : year === 2026
+        ? DEMO_MONTHLY_2026
+        : [];
+  const yearlyRows = yearlyData.length > 0 ? yearlyData : DEMO_YEARLY;
+  const employeeRows =
+    employeeData.length > 0 ? employeeData : DEMO_EMPLOYEE;
+  const profitLossRows =
+    profitLossData.length > 0
+      ? profitLossData
+      : year === 2026
+        ? DEMO_PL_2026
+        : [];
 
   const exportMonthlyCsv = () => {
-    const rows = (monthlyQ.data ?? []).map((r) => ({
+    const rows = monthlyRows.map((r) => ({
       period: formatMonthLabel(r.period),
       revenue: r.revenue.toFixed(2),
       orders: r.orders,
@@ -98,7 +339,7 @@ export default function ReportsPage() {
     downloadTableAsPdf(
       `Monthly Report — ${year}`,
       ["Month", "Revenue", "Orders", "Avg order", "Growth %"],
-      (monthlyQ.data ?? []).map((r) => [
+      monthlyRows.map((r) => [
         formatMonthLabel(r.period),
         formatCurrency(r.revenue),
         r.orders,
@@ -110,7 +351,7 @@ export default function ReportsPage() {
   };
 
   const exportYearlyCsv = () => {
-    const rows = (yearlyQ.data ?? []).map((r) => ({
+    const rows = yearlyRows.map((r) => ({
       period: r.period,
       revenue: r.revenue.toFixed(2),
       orders: r.orders,
@@ -128,7 +369,7 @@ export default function ReportsPage() {
   };
 
   const exportEmployeeCsv = () => {
-    const rows = (empQ.data ?? []).map((r) => ({
+    const rows = employeeRows.map((r) => ({
       name: r.name ?? r.email ?? "Unknown",
       salesCount: r.salesCount,
       revenue: r.revenue.toFixed(2),
@@ -147,7 +388,7 @@ export default function ReportsPage() {
     downloadTableAsPdf(
       `Profit & Loss — ${year}`,
       ["Month", "Revenue", "Cost", "Profit", "Margin"],
-      (plQ.data ?? []).map((r) => [
+      profitLossRows.map((r) => [
         formatMonthLabel(r.period),
         formatCurrency(r.revenue),
         formatCurrency(r.cost),
@@ -201,7 +442,7 @@ export default function ReportsPage() {
                   variant="outline"
                   size="sm"
                   onClick={exportMonthlyCsv}
-                  disabled={!monthlyQ.data}
+                  disabled={monthlyRows.length === 0}
                 >
                   <Download className="mr-1 h-3.5 w-3.5" />
                   CSV
@@ -210,7 +451,7 @@ export default function ReportsPage() {
                   variant="outline"
                   size="sm"
                   onClick={exportMonthlyPdf}
-                  disabled={!monthlyQ.data}
+                  disabled={monthlyRows.length === 0}
                 >
                   <FileText className="mr-1 h-3.5 w-3.5" />
                   PDF
@@ -233,7 +474,7 @@ export default function ReportsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {(monthlyQ.data ?? []).map((r) => (
+                      {monthlyRows.map((r) => (
                         <TableRow key={r.period}>
                           <TableCell className="font-medium">
                             {formatMonthLabel(r.period)}
@@ -270,7 +511,7 @@ export default function ReportsPage() {
                 variant="outline"
                 size="sm"
                 onClick={exportYearlyCsv}
-                disabled={!yearlyQ.data}
+                disabled={yearlyRows.length === 0}
               >
                 <Download className="mr-1 h-3.5 w-3.5" />
                 Export CSV
@@ -279,7 +520,7 @@ export default function ReportsPage() {
             <CardContent>
               {yearlyQ.isLoading ? (
                 <Skeleton className="h-48 w-full" />
-              ) : (yearlyQ.data ?? []).length === 0 ? (
+              ) : yearlyRows.length === 0 ? (
                 <div className="py-10 text-center text-sm text-muted-foreground">
                   No yearly data yet.
                 </div>
@@ -296,7 +537,7 @@ export default function ReportsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {(yearlyQ.data ?? []).map((r) => (
+                      {yearlyRows.map((r) => (
                         <TableRow key={r.period}>
                           <TableCell className="font-medium">
                             {r.period}
@@ -333,7 +574,7 @@ export default function ReportsPage() {
                 variant="outline"
                 size="sm"
                 onClick={exportEmployeeCsv}
-                disabled={!empQ.data}
+                disabled={employeeRows.length === 0}
               >
                 <Download className="mr-1 h-3.5 w-3.5" />
                 Export CSV
@@ -342,7 +583,7 @@ export default function ReportsPage() {
             <CardContent>
               {empQ.isLoading ? (
                 <Skeleton className="h-48 w-full" />
-              ) : (empQ.data ?? []).length === 0 ? (
+              ) : employeeRows.length === 0 ? (
                 <div className="py-10 text-center text-sm text-muted-foreground">
                   No teammates have logged sales yet.
                 </div>
@@ -358,8 +599,8 @@ export default function ReportsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {(empQ.data ?? []).map((e, idx) => (
-                        <TableRow key={e.clerkUserId ?? `u-${idx}`}>
+                      {employeeRows.map((e, idx) => (
+                        <TableRow key={e.salesOsUserId ?? `u-${idx}`}>
                           <TableCell className="font-medium">
                             {e.name ?? e.email ?? "Unknown"}
                             {e.email && e.name && (
@@ -411,7 +652,7 @@ export default function ReportsPage() {
                   variant="outline"
                   size="sm"
                   onClick={exportPlPdf}
-                  disabled={!plQ.data}
+                  disabled={profitLossRows.length === 0}
                 >
                   <FileText className="mr-1 h-3.5 w-3.5" />
                   PDF
@@ -434,7 +675,7 @@ export default function ReportsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {(plQ.data ?? []).map((r) => (
+                      {profitLossRows.map((r) => (
                         <TableRow key={r.period}>
                           <TableCell className="font-medium">
                             {formatMonthLabel(r.period)}

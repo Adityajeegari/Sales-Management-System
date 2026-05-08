@@ -31,7 +31,7 @@ export interface Sale {
   /** @nullable */
   customerName?: string | null;
   /** @nullable */
-  createdByClerkId?: string | null;
+  createdBySalesOsId?: string | null;
   /** @nullable */
   createdByName?: string | null;
   /** @nullable */

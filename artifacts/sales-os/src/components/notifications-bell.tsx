@@ -36,7 +36,8 @@ export function NotificationsBell() {
     query: { refetchInterval: 30_000, queryKey: getListNotificationsQueryKey() },
   });
   const markAll = useMarkAllNotificationsRead();
-  const unread = (data ?? []).filter((n) => !n.read).length;
+  const notifications = Array.isArray(data) ? data : [];
+  const unread = notifications.filter((n) => !n.read).length;
 
   const onMarkAll = async () => {
     if (unread === 0) return;
@@ -69,13 +70,13 @@ export function NotificationsBell() {
           )}
         </div>
         <ScrollArea className="max-h-80">
-          {(data ?? []).length === 0 ? (
+          {notifications.length === 0 ? (
             <p className="p-6 text-center text-sm text-muted-foreground">
               You're all caught up.
             </p>
           ) : (
             <ul className="divide-y">
-              {(data ?? []).map((n) => {
+              {notifications.map((n) => {
                 const Icon = ICONS[n.type] ?? Bell;
                 const tone = ICON_TONE[n.type] ?? "text-muted-foreground";
                 return (

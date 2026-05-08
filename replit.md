@@ -5,7 +5,7 @@ A production-grade Sales Management System built as a clean, Google-quality web 
 ## What it does
 
 - **Marketing landing page** with a hero, animated KPI mockup, and feature grid.
-- **Authentication** via Clerk (email + Google), branded sign-in/sign-up pages.
+-- **Authentication** via Sales OS (email + Google), branded sign-in/sign-up pages.
 - **Dashboard** with KPI cards (revenue, orders, customers, AOV), 12-month revenue area chart, category mix pie chart, recent sales feed, top products, and a 3-month AI sales forecast.
 - **Sales** CRUD with search, status filters, customer linking, dialog-based create/edit, and delete confirmation.
 - **Customers** CRUD with search, lifetime spend, order count, and a per-customer detail view showing full purchase history.
@@ -30,7 +30,7 @@ lib/
 
 ### Backend (`artifacts/api-server`)
 
-- `src/app.ts` mounts: pino logging → Clerk proxy → CORS → JSON → `clerkMiddleware()` → `/api` router.
+-- `src/app.ts` mounts: pino logging → Sales OS proxy → CORS → JSON → `clerkMiddleware()` (Sales OS auth proxy) → `/api` router.
 - Routes (`src/routes/`):
   - `sales.ts` — list (with `search` & `status` filters), create, get, update, delete. Server computes `total = price * quantity`.
   - `customers.ts` — CRUD, includes `totalSpent` and `orderCount` (SQL aggregation), detail returns embedded sales array.
@@ -39,16 +39,9 @@ lib/
 - Cancelled sales are excluded from revenue / forecasts.
 - `requireAuth` middleware uses `getAuth(req)` and checks `sessionClaims.userId || userId`.
 
-### Database (`lib/db`)
-
-PostgreSQL via Drizzle, pushed with `pnpm db:push`.
-
-- `customers` — `id` (serial), `name`, `email` (unique), `phone?`, `company?`, `notes?`, timestamps.
-- `sales` — `id` (serial), `productName`, `category`, `price` (numeric), `quantity` (int), `total` (numeric, server-computed), `status` enum (`pending` | `completed` | `cancelled`), `saleDate`, `customerId?` FK→customers (set null on delete), `notes?`, timestamps.
-
 ### Frontend (`artifacts/sales-os`)
 
-- `App.tsx` — `ClerkProvider` (with shadcn theme + branded appearance), `WouterRouter` with `base={basePath}`, all routes wrapped with a `Protected` component for auth-gated pages.
+-- `App.tsx` — Sales OS auth (`ClerkProvider`) with shadcn theme + branded appearance; `WouterRouter` with `base={basePath}`, all routes wrapped with a `Protected` component for auth-gated pages.
 - `components/layout/app-shell.tsx` — sidebar nav, mobile sheet, theme toggle, user dropdown.
 - `pages/marketing.tsx` — public landing with framer-motion hero.
 - `pages/dashboard.tsx` — Recharts area + pie + KPI cards + forecast.
@@ -72,12 +65,12 @@ Generated from `lib/api-spec/openapi.yaml`. Hooks like `useListSales`, `useCreat
 
 ## Auth setup
 
-Clerk is provisioned via `setupClerkWhitelabelAuth`. Required secrets:
+Sales OS is provisioned via `setupClerkWhitelabelAuth`. Required secrets:
 - `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`, `VITE_CLERK_PUBLISHABLE_KEY` (auto-set).
 - `SESSION_SECRET` (already present).
 - `DATABASE_URL` (Postgres, already present).
 
-Sign-in/sign-up routes are `/sign-in/*?` and `/sign-up/*?` (the trailing `*?` is required for Clerk OAuth subpaths).
+Sign-in/sign-up routes are `/sign-in/*?` and `/sign-up/*?` (the trailing `*?` is required for Sales OS OAuth subpaths).
 
 ## Seed data
 

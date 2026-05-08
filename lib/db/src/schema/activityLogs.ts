@@ -12,7 +12,7 @@ export const activityLogsTable = pgTable(
   "activity_logs",
   {
     id: serial("id").primaryKey(),
-    clerkUserId: text("clerk_user_id"),
+    salesOsUserId: text("clerk_user_id"),
     actorName: text("actor_name"),
     actorEmail: text("actor_email"),
     action: text("action").notNull(),

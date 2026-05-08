@@ -15,6 +15,7 @@ const ACTION_VARIANT: Record<string, "default" | "secondary" | "destructive"> = 
 
 export default function ActivityPage() {
   const { data, isLoading } = useListActivity({ limit: 100 });
+  const activities = Array.isArray(data) ? data : [];
 
   return (
     <div className="space-y-6">
@@ -40,13 +41,13 @@ export default function ActivityPage() {
                 <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
-          ) : (data ?? []).length === 0 ? (
+          ) : activities.length === 0 ? (
             <p className="py-12 text-center text-sm text-muted-foreground">
               No activity yet.
             </p>
           ) : (
             <ol className="space-y-3">
-              {(data ?? []).map((a) => (
+              {activities.map((a) => (
                 <li
                   key={a.id}
                   className="flex items-start justify-between gap-3 rounded-md border p-3"

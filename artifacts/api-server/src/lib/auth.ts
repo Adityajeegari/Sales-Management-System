@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { count, eq } from "drizzle-orm";
-import { clerkClient, getAuth } from "@clerk/express";
+import { salesOsClient as clerkClient, getSalesOsAuth as getAuth } from "./salesosAuth";
 import {
   db,
   userRolesTable,
@@ -13,11 +13,11 @@ export interface AuthedRequest extends Request {
   userRole?: UserRole;
 }
 
-async function fetchClerkProfile(
-  clerkUserId: string,
+async function fetchSalesOsProfile(
+  salesOsUserId: string,
 ): Promise<{ email: string | null; name: string | null }> {
   try {
-    const u = await clerkClient.users.getUser(clerkUserId);
+    const u = await clerkClient.users.getUser(salesOsUserId);
     const email =
       u.primaryEmailAddress?.emailAddress ??
       u.emailAddresses[0]?.emailAddress ??
@@ -31,15 +31,15 @@ async function fetchClerkProfile(
 }
 
 export async function getOrCreateUserRole(
-  clerkUserId: string,
+  salesOsUserId: string,
 ): Promise<UserRole> {
   const [existing] = await db
     .select()
     .from(userRolesTable)
-    .where(eq(userRolesTable.clerkUserId, clerkUserId));
+    .where(eq(userRolesTable.salesOsUserId, salesOsUserId));
   if (existing) {
     if (!existing.email || !existing.name) {
-      const profile = await fetchClerkProfile(clerkUserId);
+      const profile = await fetchSalesOsProfile(salesOsUserId);
       const [updated] = await db
         .update(userRolesTable)
         .set({
@@ -57,11 +57,11 @@ export async function getOrCreateUserRole(
     .select({ total: count() })
     .from(userRolesTable);
   const isFirstUser = Number(total ?? 0) === 0;
-  const profile = await fetchClerkProfile(clerkUserId);
+  const profile = await fetchSalesOsProfile(salesOsUserId);
   const [created] = await db
     .insert(userRolesTable)
     .values({
-      clerkUserId,
+      salesOsUserId,
       email: profile.email,
       name: profile.name,
       role: isFirstUser ? "admin" : "staff",
@@ -77,18 +77,18 @@ export function requireRole(...allowed: RoleName[]) {
     next: NextFunction,
   ): Promise<void> => {
     const auth = getAuth(req);
-    const clerkUserId = (auth?.sessionClaims?.userId as string) || auth?.userId;
-    if (!clerkUserId) {
+    const salesOsUserId = (auth?.sessionClaims?.userId as string) || auth?.userId;
+    if (!salesOsUserId) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
     try {
-      const userRole = await getOrCreateUserRole(String(clerkUserId));
+      const userRole = await getOrCreateUserRole(String(salesOsUserId));
       if (!allowed.includes(userRole.role as RoleName)) {
         res.status(403).json({ error: "Forbidden" });
         return;
       }
-      (req as AuthedRequest).userId = String(clerkUserId);
+      (req as AuthedRequest).userId = String(salesOsUserId);
       (req as AuthedRequest).userRole = userRole;
       next();
     } catch (err) {

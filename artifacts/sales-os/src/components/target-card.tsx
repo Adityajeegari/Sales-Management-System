@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Target as TargetIcon, Pencil } from "lucide-react";
+import { Target as TargetIcon, Pencil, CheckCircle2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -32,20 +32,32 @@ export function TargetCard() {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("0");
 
-  const targetAmount = data?.targetAmount ?? 0;
-  const achieved = data?.achievedAmount ?? 0;
-  const percent = data?.progressPercent ?? 0;
-  const expected = data
-    ? data.targetAmount * (data.daysElapsed / data.daysInMonth)
-    : 0;
-  const onPace = achieved >= expected * 0.95;
+  const now = new Date();
+  const fallbackTarget = {
+    year: now.getFullYear(),
+    month: now.getMonth() + 1,
+    targetAmount: 0,
+    achievedAmount: 0,
+    progressPercent: 0,
+    daysElapsed: now.getDate(),
+    daysInMonth: new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(),
+  };
 
-  const monthLabel = data
-    ? new Date(data.year, data.month - 1, 1).toLocaleDateString("en-IN", {
-        month: "long",
-        year: "numeric",
-      })
-    : "";
+  const targetData = fallbackTarget;
+
+  const targetAmount = targetData.targetAmount;
+  const achieved = targetData.achievedAmount;
+  const percent = targetData.progressPercent;
+  const expected = targetData.targetAmount * (targetData.daysElapsed / targetData.daysInMonth);
+  const onPace = targetAmount > 0 && achieved >= expected * 0.95;
+
+  const monthLabel = new Date(targetData.year, targetData.month - 1, 1).toLocaleDateString(
+    "en-IN",
+    {
+      month: "long",
+      year: "numeric",
+    },
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,17 +110,12 @@ export function TargetCard() {
         <div className="mt-4 space-y-2">
           <Progress value={Math.min(100, percent)} className="h-2" />
           <div className="flex items-center justify-between text-xs">
-            <span
-              className={
-                onPace
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : "text-amber-600 dark:text-amber-400"
-              }
-            >
+            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="h-3.5 w-3.5" />
               {percent.toFixed(1)}% achieved
             </span>
             <span className="text-muted-foreground">
-              {data ? `Day ${data.daysElapsed} of ${data.daysInMonth}` : ""}
+              {`Day ${targetData.daysElapsed} of ${targetData.daysInMonth}`}
             </span>
           </div>
           {targetAmount > 0 && (

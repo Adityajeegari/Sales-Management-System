@@ -17,7 +17,7 @@ export interface SaleDTO {
   saleDate: string;
   customerId: number | null;
   customerName: string | null;
-  createdByClerkId: string | null;
+  createdBySalesOsId: string | null;
   createdByName: string | null;
   notes: string | null;
   createdAt: string;
@@ -46,7 +46,7 @@ export function serializeSale(
     saleDate: new Date(sale.saleDate).toISOString(),
     customerId: sale.customerId ?? null,
     customerName: customerName,
-    createdByClerkId: sale.createdByClerkId ?? null,
+    createdBySalesOsId: sale.createdBySalesOsId ?? null,
     createdByName: createdByName,
     notes: sale.notes ?? null,
     createdAt: new Date(sale.createdAt).toISOString(),

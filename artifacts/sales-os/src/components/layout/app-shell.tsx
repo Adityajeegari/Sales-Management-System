@@ -14,7 +14,7 @@ import {
   Activity as ActivityIcon,
 } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications-bell";
-import { useClerk, useUser } from "@clerk/react";
+import { useClerk, useUser } from "@/lib/salesos";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -45,8 +51,8 @@ const navItems: NavItem[] = [
   { title: "Products", href: "/products", icon: Package },
   { title: "Customers", href: "/customers", icon: Users },
   { title: "Reports", href: "/reports", icon: PieChart },
-  { title: "Activity", href: "/activity", icon: ActivityIcon, adminOnly: true },
-  { title: "Team", href: "/team", icon: ShieldCheck, adminOnly: true },
+  { title: "Activity", href: "/activity", icon: ActivityIcon },
+  { title: "Team", href: "/team", icon: ShieldCheck },
   { title: "Settings", href: "/settings", icon: SettingsIcon },
 ];
 
@@ -99,6 +105,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const initials =
     (user?.firstName?.charAt(0) ?? "") +
       (user?.lastName?.charAt(0) ?? "") || "U";
+  const displayName = user?.fullName || user?.firstName || "Account";
+  const displayEmail = user?.primaryEmailAddress?.emailAddress || "No email";
+  const displayRole = role ? ROLE_LABELS[role] : "Admin";
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[240px_1fr] bg-muted/30">
@@ -111,25 +120,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex-1 overflow-auto py-4">
           <NavLinks />
         </div>
-        <div className="border-t p-4">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9">
+        <div className="border-t p-3">
+          <div className="flex items-center gap-3 rounded-lg px-1 py-1">
+            <Avatar className="h-10 w-10">
               <AvatarImage src={user?.imageUrl} alt={user?.fullName || ""} />
-              <AvatarFallback>{initials}</AvatarFallback>
+              <AvatarFallback className="bg-orange-500 text-white">
+                {initials}
+              </AvatarFallback>
             </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">
-                {user?.fullName || user?.firstName || "Account"}
+            <div className="min-w-0 max-w-[108px] flex-1 pr-1">
+              <p className="truncate text-sm font-semibold leading-5">
+                {displayName}
               </p>
-              <p className="truncate text-xs text-muted-foreground">
-                {user?.primaryEmailAddress?.emailAddress}
+              <p className="truncate text-xs text-muted-foreground leading-5">
+                {displayEmail}
               </p>
             </div>
-            {role && (
-              <Badge variant="outline" className="capitalize">
-                {ROLE_LABELS[role]}
-              </Badge>
-            )}
+            <Badge
+              variant="outline"
+              className="h-7 min-w-[74px] shrink-0 rounded-md px-3 text-xs font-semibold capitalize"
+            >
+              {displayRole}
+            </Badge>
           </div>
         </div>
       </aside>
@@ -151,6 +163,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               side="left"
               className="flex w-[260px] flex-col gap-4 p-0 pt-6"
             >
+              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+              <SheetDescription className="sr-only">
+                Use this menu to navigate between dashboard pages.
+              </SheetDescription>
               <div className="px-5 pb-2">
                 <Logo />
               </div>
@@ -176,9 +192,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel className="flex flex-col gap-0.5">
-                <span>{user?.fullName || user?.firstName || "Account"}</span>
+                <span>{displayName}</span>
                 <span className="text-xs font-normal text-muted-foreground">
-                  {user?.primaryEmailAddress?.emailAddress}
+                  {displayEmail}
                 </span>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

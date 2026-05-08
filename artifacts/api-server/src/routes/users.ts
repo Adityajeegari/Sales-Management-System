@@ -12,7 +12,7 @@ function isRole(v: unknown): v is RoleName {
 
 function serializeMember(u: {
   id: number;
-  clerkUserId: string;
+  salesOsUserId: string;
   email: string | null;
   name: string | null;
   role: string;
@@ -20,7 +20,7 @@ function serializeMember(u: {
 }) {
   return {
     id: u.id,
-    clerkUserId: u.clerkUserId,
+    salesOsUserId: u.salesOsUserId,
     email: u.email,
     name: u.name,
     role: u.role as RoleName,
@@ -40,7 +40,7 @@ router.get(
     const role = await getOrCreateUserRole(userId);
     res.json({
       id: role.id,
-      clerkUserId: role.clerkUserId,
+      salesOsUserId: role.salesOsUserId,
       email: role.email,
       name: role.name,
       role: role.role as RoleName,
@@ -92,7 +92,7 @@ router.patch(
         .from(userRolesTable)
         .where(eq(userRolesTable.role, "admin"));
       if (admins.length <= 1) {
-        const isSelf = target.clerkUserId === requesterId;
+        const isSelf = target.salesOsUserId === requesterId;
         res.status(400).json({
           error: isSelf
             ? "You cannot demote yourself as the only admin"

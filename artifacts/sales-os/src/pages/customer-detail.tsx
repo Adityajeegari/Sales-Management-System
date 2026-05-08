@@ -18,8 +18,9 @@ import {
 } from "@/components/ui/table";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/format";
 
-function getInitials(name: string): string {
-  return name
+function getInitials(name?: string | null, email?: string | null): string {
+  const source = (name || email || "?").trim();
+  return source
     .split(" ")
     .map((n) => n.charAt(0))
     .slice(0, 2)
@@ -29,6 +30,9 @@ function getInitials(name: string): string {
 
 export default function CustomerDetailPage({ id }: { id: number }) {
   const { data, isLoading, isError } = useGetCustomer(id);
+  const sales = Array.isArray(data?.sales) ? data.sales : [];
+  const customerName = data?.name || "Unknown customer";
+  const customerEmail = data?.email || "No email";
 
   return (
     <div className="space-y-6">
@@ -57,17 +61,17 @@ export default function CustomerDetailPage({ id }: { id: number }) {
                 <div className="flex items-center gap-4">
                   <Avatar className="h-14 w-14">
                     <AvatarFallback className="bg-primary/10 text-primary text-lg">
-                      {getInitials(data.name)}
+                      {getInitials(data.name, data.email)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <h1 className="text-2xl font-semibold tracking-tight">
-                      {data.name}
+                      {customerName}
                     </h1>
                     <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                       <span className="inline-flex items-center gap-1.5">
                         <Mail className="h-3.5 w-3.5" />
-                        {data.email}
+                        {customerEmail}
                       </span>
                       {data.phone && (
                         <span className="inline-flex items-center gap-1.5">
@@ -114,7 +118,7 @@ export default function CustomerDetailPage({ id }: { id: number }) {
               <CardTitle>Purchase history</CardTitle>
             </CardHeader>
             <CardContent>
-              {data.sales.length === 0 ? (
+              {sales.length === 0 ? (
                 <div className="py-10 text-center text-sm text-muted-foreground">
                   No purchases yet.
                 </div>
@@ -132,7 +136,7 @@ export default function CustomerDetailPage({ id }: { id: number }) {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {data.sales.map((s) => (
+                      {sales.map((s) => (
                         <TableRow key={s.id}>
                           <TableCell className="font-medium">
                             {s.productName}

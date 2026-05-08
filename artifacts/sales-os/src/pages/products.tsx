@@ -79,16 +79,161 @@ const CATEGORY_OPTIONS = [
   "Other",
 ];
 
+const DEMO_PRODUCTS: Product[] = [
+  {
+    id: 901,
+    name: "LED Desk Lamp",
+    sku: "OFF-LDL-006",
+    category: "Office",
+    description: "Adjustable color temp lamp",
+    price: 45,
+    costPrice: 20,
+    stock: 41,
+    lowStockThreshold: 10,
+    lowStock: false,
+    createdAt: "2026-01-05T00:00:00.000Z",
+    updatedAt: "2026-01-05T00:00:00.000Z",
+  },
+  {
+    id: 902,
+    name: "Laptop Sleeve 14\"",
+    sku: "ACC-LS14-010",
+    category: "Accessories",
+    description: "Padded sleeve for 14-inch laptops",
+    price: 29,
+    costPrice: 12,
+    stock: 9,
+    lowStockThreshold: 10,
+    lowStock: true,
+    createdAt: "2026-01-10T00:00:00.000Z",
+    updatedAt: "2026-01-10T00:00:00.000Z",
+  },
+  {
+    id: 903,
+    name: "Mechanical Keyboard 75%",
+    sku: "KB-MK75-002",
+    category: "Electronics",
+    description: "Hot-swappable RGB mechanical keyboard",
+    price: 129,
+    costPrice: 50,
+    stock: 18,
+    lowStockThreshold: 10,
+    lowStock: false,
+    createdAt: "2026-01-12T00:00:00.000Z",
+    updatedAt: "2026-01-12T00:00:00.000Z",
+  },
+  {
+    id: 904,
+    name: "Notebook A5 Hardcover",
+    sku: "STA-NHC-007",
+    category: "Stationery",
+    description: "Premium A5 dotted notebook",
+    price: 14,
+    costPrice: 5.5,
+    stock: 4,
+    lowStockThreshold: 10,
+    lowStock: true,
+    createdAt: "2026-01-14T00:00:00.000Z",
+    updatedAt: "2026-01-14T00:00:00.000Z",
+  },
+  {
+    id: 905,
+    name: "Premium Pen Set",
+    sku: "STA-PPS-008",
+    category: "Stationery",
+    description: "Set of 6 rollerball pens",
+    price: 32,
+    costPrice: 14,
+    stock: 56,
+    lowStockThreshold: 10,
+    lowStock: false,
+    createdAt: "2026-01-16T00:00:00.000Z",
+    updatedAt: "2026-01-16T00:00:00.000Z",
+  },
+  {
+    id: 906,
+    name: "Standing Desk Mat",
+    sku: "OFF-SDM-005",
+    category: "Office",
+    description: "Anti-fatigue ergonomic mat",
+    price: 79,
+    costPrice: 38,
+    stock: 25,
+    lowStockThreshold: 10,
+    lowStock: false,
+    createdAt: "2026-01-18T00:00:00.000Z",
+    updatedAt: "2026-01-18T00:00:00.000Z",
+  },
+  {
+    id: 907,
+    name: "Studio Headphones",
+    sku: "AUD-SH-004",
+    category: "Electronics",
+    description: "Closed-back studio monitoring headphones",
+    price: 189,
+    costPrice: 70,
+    stock: 14,
+    lowStockThreshold: 10,
+    lowStock: false,
+    createdAt: "2026-01-20T00:00:00.000Z",
+    updatedAt: "2026-01-20T00:00:00.000Z",
+  },
+  {
+    id: 908,
+    name: "USB-C Hub 7-in-1",
+    sku: "HUB-USC7-003",
+    category: "Electronics",
+    description: "7-in-1 hub with HDMI 4K, SD, USB 3.0",
+    price: 59,
+    costPrice: 33,
+    stock: 7,
+    lowStockThreshold: 10,
+    lowStock: true,
+    createdAt: "2026-01-22T00:00:00.000Z",
+    updatedAt: "2026-01-22T00:00:00.000Z",
+  },
+  {
+    id: 909,
+    name: "Wireless Charger 15W",
+    sku: "ACC-WC15-009",
+    category: "Accessories",
+    description: "Fast wireless charging pad",
+    price: 39,
+    costPrice: 16,
+    stock: 22,
+    lowStockThreshold: 10,
+    lowStock: false,
+    createdAt: "2026-01-24T00:00:00.000Z",
+    updatedAt: "2026-01-24T00:00:00.000Z",
+  },
+  {
+    id: 910,
+    name: "Wireless Mouse Pro",
+    sku: "MOU-WP-001",
+    category: "Electronics",
+    description: "Ergonomic wireless mouse with 4-month battery",
+    price: 49,
+    costPrice: 24,
+    stock: 32,
+    lowStockThreshold: 10,
+    lowStock: false,
+    createdAt: "2026-01-26T00:00:00.000Z",
+    updatedAt: "2026-01-26T00:00:00.000Z",
+  },
+];
+
 function ProductDialog({
   open,
   onOpenChange,
   product,
+  demoMode,
   onSaved,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product: Product | null;
-  onSaved: () => void;
+  demoMode: boolean;
+  onSaved: (values: FormValues, product: Product | null) => void;
 }) {
   const create = useCreateProduct();
   const update = useUpdateProduct();
@@ -121,18 +266,20 @@ function ProductDialog({
 
   const submit = async (values: FormValues) => {
     try {
-      if (isEditing && product) {
-        await update.mutateAsync({
-          id: product.id,
-          data: { ...values, description: values.description || null },
-        });
-      } else {
-        await create.mutateAsync({
-          data: { ...values, description: values.description || null },
-        });
+      if (!demoMode) {
+        if (isEditing && product) {
+          await update.mutateAsync({
+            id: product.id,
+            data: { ...values, description: values.description || null },
+          });
+        } else {
+          await create.mutateAsync({
+            data: { ...values, description: values.description || null },
+          });
+        }
       }
+      onSaved(values, product);
       toast.success(isEditing ? "Product updated" : "Product added");
-      onSaved();
       onOpenChange(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save product");
@@ -254,6 +401,7 @@ export default function ProductsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState<Product | null>(null);
+  const [demoProducts, setDemoProducts] = useState<Product[]>(DEMO_PRODUCTS);
 
   const params = useMemo(
     () => ({
@@ -265,9 +413,64 @@ export default function ProductsPage() {
   );
   const { data, isLoading } = useListProducts(params);
   const deleteMut = useDeleteProduct();
+  const apiProducts = Array.isArray(data) ? data : [];
+  const demoMode = apiProducts.length === 0;
+  const baseProducts = demoMode ? demoProducts : apiProducts;
 
-  const lowStockCount = (data ?? []).filter((p) => p.lowStock).length;
-  const totalStockValue = (data ?? []).reduce(
+  const upsertDemoProduct = (values: FormValues, product: Product | null) => {
+    const now = new Date().toISOString();
+    setDemoProducts((current) => {
+      if (product) {
+        return current.map((item) =>
+          item.id === product.id
+            ? {
+                ...item,
+                ...values,
+                description: values.description || null,
+                lowStock: values.stock <= values.lowStockThreshold,
+                updatedAt: now,
+              }
+            : item,
+        );
+      }
+
+      const nextId =
+        current.reduce((max, item) => Math.max(max, item.id), 900) + 1;
+      return [
+        ...current,
+        {
+          id: nextId,
+          ...values,
+          description: values.description || null,
+          lowStock: values.stock <= values.lowStockThreshold,
+          createdAt: now,
+          updatedAt: now,
+        },
+      ];
+    });
+  };
+  const products = useMemo(() => {
+    const searchValue = search.trim().toLowerCase();
+    return baseProducts.filter((product) => {
+      if (
+        searchValue &&
+        !product.name.toLowerCase().includes(searchValue) &&
+        !product.sku.toLowerCase().includes(searchValue)
+      ) {
+        return false;
+      }
+      if (category !== "all" && product.category !== category) {
+        return false;
+      }
+      if (lowOnly && !product.lowStock) {
+        return false;
+      }
+      return true;
+    });
+  }, [baseProducts, search, category, lowOnly]);
+
+  const lowStockCount = products.filter((p) => p.lowStock).length;
+  const totalStockValue = products.reduce(
     (acc, p) => acc + p.stock * p.costPrice,
     0,
   );
@@ -275,17 +478,29 @@ export default function ProductsPage() {
   const handleDelete = async () => {
     if (!deleting) return;
     try {
-      await deleteMut.mutateAsync({ id: deleting.id });
+      if (demoMode) {
+        setDemoProducts((current) =>
+          current.filter((item) => item.id !== deleting.id),
+        );
+      } else {
+        await deleteMut.mutateAsync({ id: deleting.id });
+        qc.invalidateQueries({ queryKey: getListProductsQueryKey() });
+      }
       toast.success("Product deleted");
-      qc.invalidateQueries({ queryKey: getListProductsQueryKey() });
       setDeleting(null);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to delete");
     }
   };
 
-  const refresh = () =>
+  const refresh = (values: FormValues, product: Product | null) => {
+    if (demoMode) {
+      upsertDemoProduct(values, product);
+      return;
+    }
+
     qc.invalidateQueries({ queryKey: getListProductsQueryKey() });
+  };
 
   return (
     <div className="space-y-6">
@@ -318,7 +533,7 @@ export default function ProductsPage() {
               Catalog size
             </p>
             <p className="mt-2 text-2xl font-semibold">
-              {formatNumber(data?.length ?? 0)}
+              {formatNumber(products.length)}
             </p>
           </CardContent>
         </Card>
@@ -404,7 +619,7 @@ export default function ProductsPage() {
                       </TableCell>
                     </TableRow>
                   ))
-                ) : (data ?? []).length === 0 ? (
+                ) : products.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={7}
@@ -414,7 +629,7 @@ export default function ProductsPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  (data ?? []).map((p) => (
+                  products.map((p) => (
                     <TableRow key={p.id}>
                       <TableCell>
                         <p className="font-medium">{p.name}</p>
@@ -445,7 +660,9 @@ export default function ProductsPage() {
                             Low
                           </Badge>
                         ) : (
-                          <Badge variant="secondary">In stock</Badge>
+                          <Badge className="bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 hover:bg-blue-500/20">
+                            In stock
+                          </Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
@@ -484,6 +701,7 @@ export default function ProductsPage() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         product={editing}
+        demoMode={demoMode}
         onSaved={refresh}
       />
 

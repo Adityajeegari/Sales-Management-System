@@ -722,7 +722,7 @@ components:
           type: ["integer", "null"]
         customerName:
           type: ["string", "null"]
-        createdByClerkId:
+        createdBySalesOsId:
           type: ["string", "null"]
         createdByName:
           type: ["string", "null"]
@@ -951,7 +951,7 @@ components:
       properties:
         id:
           type: integer
-        clerkUserId:
+        salesOsUserId:
           type: string
         email:
           type: ["string", "null"]
@@ -959,14 +959,14 @@ components:
           type: ["string", "null"]
         role:
           $ref: "#/components/schemas/UserRole"
-      required: [id, clerkUserId, role]
+      required: [id, salesOsUserId, role]
 
     TeamMember:
       type: object
       properties:
         id:
           type: integer
-        clerkUserId:
+        salesOsUserId:
           type: string
         email:
           type: ["string", "null"]
@@ -977,7 +977,7 @@ components:
         createdAt:
           type: string
           format: date-time
-      required: [id, clerkUserId, role, createdAt]
+      required: [id, salesOsUserId, role, createdAt]
 
     RoleUpdate:
       type: object
@@ -1191,7 +1191,7 @@ components:
     EmployeePerformance:
       type: object
       properties:
-        clerkUserId:
+        salesOsUserId:
           type: ["string", "null"]
         name:
           type: ["string", "null"]

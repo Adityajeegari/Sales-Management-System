@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, Pencil, Trash2, ArrowRight } from "lucide-react";
@@ -52,8 +52,51 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency, formatNumber } from "@/lib/format";
 import { useCurrentUserRole } from "@/lib/roles";
 
-function getInitials(name: string): string {
-  return name
+const DEMO_CUSTOMERS: Customer[] = [
+  {
+    id: 901,
+    name: "Olivia Carter",
+    email: "olivia@northstar.io",
+    phone: null,
+    company: "Northstar Labs",
+    notes: null,
+    totalSpent: 10211,
+    orderCount: 9,
+    segment: "vip",
+    createdAt: "2026-01-15T00:00:00.000Z",
+    updatedAt: "2026-01-15T00:00:00.000Z",
+  },
+  {
+    id: 902,
+    name: "Priya Iyer",
+    email: "priya@kindlework.com",
+    phone: null,
+    company: "Kindle Work",
+    notes: null,
+    totalSpent: 9243,
+    orderCount: 6,
+    segment: "vip",
+    createdAt: "2026-01-18T00:00:00.000Z",
+    updatedAt: "2026-01-18T00:00:00.000Z",
+  },
+  {
+    id: 903,
+    name: "Marcus Reyes",
+    email: "marcus@helio.dev",
+    phone: null,
+    company: "Helio Software",
+    notes: null,
+    totalSpent: 14404,
+    orderCount: 7,
+    segment: "vip",
+    createdAt: "2026-01-20T00:00:00.000Z",
+    updatedAt: "2026-01-20T00:00:00.000Z",
+  },
+];
+
+function getInitials(name?: string | null, email?: string | null): string {
+  const source = (name || email || "?").trim();
+  return source
     .split(" ")
     .map((n) => n.charAt(0))
     .slice(0, 2)
@@ -79,10 +122,14 @@ function CustomerDialog({
   open,
   onOpenChange,
   customer,
+  demoMode,
+  onSaved,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   customer: Customer | null;
+  demoMode: boolean;
+  onSaved: (body: CustomerInput, customer: Customer | null) => void;
 }) {
   const qc = useQueryClient();
   const createMut = useCreateCustomer();
@@ -106,13 +153,18 @@ function CustomerDialog({
       notes: notes.trim() || null,
     };
     try {
-      if (isEdit && customer) {
-        await updateMut.mutateAsync({ id: customer.id, data: body });
-        toast.success("Customer updated");
+      if (!demoMode) {
+        if (isEdit && customer) {
+          await updateMut.mutateAsync({ id: customer.id, data: body });
+          toast.success("Customer updated");
+        } else {
+          await createMut.mutateAsync({ data: body });
+          toast.success("Customer added");
+        }
       } else {
-        await createMut.mutateAsync({ data: body });
-        toast.success("Customer added");
+        toast.success(isEdit ? "Customer updated locally" : "Customer added locally");
       }
+      onSaved(body, customer);
       qc.invalidateQueries({ queryKey: getListCustomersQueryKey() });
       onOpenChange(false);
     } catch (err) {
@@ -215,18 +267,76 @@ export default function CustomersPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Customer | null>(null);
   const [deleting, setDeleting] = useState<Customer | null>(null);
+  const [demoCustomers, setDemoCustomers] = useState<Customer[]>(DEMO_CUSTOMERS);
 
   const { data: customers, isLoading } = useListCustomers({
     search: search || undefined,
   });
   const deleteMut = useDeleteCustomer();
+  const apiCustomers = Array.isArray(customers) ? customers : [];
+  const demoMode = apiCustomers.length === 0;
+  const baseCustomers = demoMode ? demoCustomers : apiCustomers;
+
+  const upsertDemoCustomer = (body: CustomerInput, customer: Customer | null) => {
+    const now = new Date().toISOString();
+    setDemoCustomers((current) => {
+      if (customer) {
+        return current.map((item) =>
+          item.id === customer.id
+            ? {
+                ...item,
+                ...body,
+                phone: body.phone ?? null,
+                company: body.company ?? null,
+                notes: body.notes ?? null,
+                updatedAt: now,
+              }
+            : item,
+        );
+      }
+
+      const nextId =
+        current.reduce((max, item) => Math.max(max, item.id), 900) + 1;
+      return [
+        {
+          id: nextId,
+          ...body,
+          phone: body.phone ?? null,
+          company: body.company ?? null,
+          notes: body.notes ?? null,
+          totalSpent: 0,
+          orderCount: 0,
+          segment: "new",
+          createdAt: now,
+          updatedAt: now,
+        },
+        ...current,
+      ];
+    });
+  };
+  const customersList = useMemo(() => {
+    const searchValue = search.trim().toLowerCase();
+    if (!searchValue) return baseCustomers;
+    return baseCustomers.filter((customer) => {
+      const haystack = [customer.name, customer.email, customer.company ?? ""]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(searchValue);
+    });
+  }, [baseCustomers, search]);
 
   const handleDelete = async () => {
     if (!deleting) return;
     try {
-      await deleteMut.mutateAsync({ id: deleting.id });
+      if (demoMode) {
+        setDemoCustomers((current) =>
+          current.filter((customer) => customer.id !== deleting.id),
+        );
+      } else {
+        await deleteMut.mutateAsync({ id: deleting.id });
+        qc.invalidateQueries({ queryKey: getListCustomersQueryKey() });
+      }
       toast.success("Customer deleted");
-      qc.invalidateQueries({ queryKey: getListCustomersQueryKey() });
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Could not delete customer",
@@ -295,7 +405,7 @@ export default function CustomersPage() {
                       </TableCell>
                     </TableRow>
                   ))
-                ) : (customers ?? []).length === 0 ? (
+                ) : customersList.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={6}
@@ -305,19 +415,21 @@ export default function CustomersPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  (customers ?? []).map((c) => (
+                  customersList.map((c) => (
                     <TableRow key={c.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-9 w-9">
                             <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                              {getInitials(c.name)}
+                              {getInitials(c.name, c.email)}
                             </AvatarFallback>
                           </Avatar>
                           <div className="min-w-0">
-                            <p className="truncate font-medium">{c.name}</p>
+                            <p className="truncate font-medium">
+                              {c.name || "Unknown customer"}
+                            </p>
                             <p className="truncate text-xs text-muted-foreground">
-                              {c.email}
+                              {c.email || "No email"}
                             </p>
                           </div>
                         </div>
@@ -380,6 +492,8 @@ export default function CustomersPage() {
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           customer={editing}
+          demoMode={demoMode}
+          onSaved={upsertDemoCustomer}
         />
       )}
 

@@ -8,7 +8,7 @@
 
 export interface EmployeePerformance {
   /** @nullable */
-  clerkUserId?: string | null;
+  salesOsUserId?: string | null;
   /** @nullable */
   name?: string | null;
   /** @nullable */

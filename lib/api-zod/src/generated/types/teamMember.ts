@@ -9,7 +9,7 @@ import type { UserRole } from "./userRole";
 
 export interface TeamMember {
   id: number;
-  clerkUserId: string;
+  salesOsUserId: string;
   /** @nullable */
   email?: string | null;
   /** @nullable */

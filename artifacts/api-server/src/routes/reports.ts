@@ -114,7 +114,7 @@ router.get("/reports/yearly", async (_req, res): Promise<void> => {
 router.get("/reports/employee-performance", async (_req, res): Promise<void> => {
   const rows = await db
     .select({
-      clerkUserId: salesTable.createdByClerkId,
+      salesOsUserId: salesTable.createdBySalesOsId,
       name: userRolesTable.name,
       email: userRolesTable.email,
       salesCount: sql<string>`COUNT(*)`,
@@ -123,17 +123,17 @@ router.get("/reports/employee-performance", async (_req, res): Promise<void> => 
     .from(salesTable)
     .leftJoin(
       userRolesTable,
-      eq(salesTable.createdByClerkId, userRolesTable.clerkUserId),
+      eq(salesTable.createdBySalesOsId, userRolesTable.salesOsUserId),
     )
     .where(ne(salesTable.status, "cancelled"))
-    .groupBy(salesTable.createdByClerkId, userRolesTable.name, userRolesTable.email)
+    .groupBy(salesTable.createdBySalesOsId, userRolesTable.name, userRolesTable.email)
     .orderBy(sql`COALESCE(SUM(${salesTable.total}), 0) DESC`);
 
   const result = rows.map((r) => {
     const salesCount = Number(r.salesCount);
     const revenue = Number(r.revenue);
     return {
-      clerkUserId: r.clerkUserId ?? null,
+      salesOsUserId: r.salesOsUserId ?? null,
       name: r.name ?? null,
       email: r.email ?? null,
       salesCount,

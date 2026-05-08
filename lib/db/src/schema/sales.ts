@@ -35,7 +35,7 @@ export const salesTable = pgTable("sales", {
   customerId: integer("customer_id").references(() => customersTable.id, {
     onDelete: "set null",
   }),
-  createdByClerkId: text("created_by_clerk_id"),
+  createdBySalesOsId: text("created_by_clerk_id"),
   notes: text("notes"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

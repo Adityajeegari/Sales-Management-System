@@ -54,7 +54,7 @@ export interface Sale {
   /** @nullable */
   customerName?: string | null;
   /** @nullable */
-  createdByClerkId?: string | null;
+  createdBySalesOsId?: string | null;
   /** @nullable */
   createdByName?: string | null;
   /** @nullable */
@@ -205,7 +205,7 @@ export const UserRole = {
 
 export interface CurrentUser {
   id: number;
-  clerkUserId: string;
+  salesOsUserId: string;
   /** @nullable */
   email?: string | null;
   /** @nullable */
@@ -215,7 +215,7 @@ export interface CurrentUser {
 
 export interface TeamMember {
   id: number;
-  clerkUserId: string;
+  salesOsUserId: string;
   /** @nullable */
   email?: string | null;
   /** @nullable */
@@ -332,7 +332,7 @@ export interface ActivityEntry {
 
 export interface EmployeePerformance {
   /** @nullable */
-  clerkUserId?: string | null;
+  salesOsUserId?: string | null;
   /** @nullable */
   name?: string | null;
   /** @nullable */
