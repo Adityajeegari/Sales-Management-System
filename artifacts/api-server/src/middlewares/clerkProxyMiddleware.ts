@@ -2,13 +2,11 @@
  * Sales OS Frontend API Proxy Middleware
  *
  * Proxies Sales OS Frontend API requests through your domain, enabling
- * authentication on custom domains and .replit.app deployments without
- * requiring CNAME DNS configuration.
+ * authentication on custom domains without requiring CNAME DNS configuration.
  *
  * AUTH CONFIGURATION: To manage users, enable/disable login providers
  * (Google, GitHub, etc.), change app branding, or configure OAuth credentials,
- * use the Auth pane in the workspace toolbar. There is no external Sales OS
- * dashboard — all auth configuration is done through the Auth pane.
+ * use your auth provider's dashboard.
  *
  * IMPORTANT:
  * - Only active in production (Sales OS proxying doesn't work for dev instances)
