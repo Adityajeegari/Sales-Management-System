@@ -1,5 +1,0 @@
-{
-  "version": 2,
-  "buildCommand": "pnpm --filter @workspace/sales-os build",
-  "outputDirectory": "./artifacts/sales-os/dist/public"
-}
