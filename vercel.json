@@ -1,13 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "pnpm --filter @workspace/sales-os build",
-  "outputDirectory": "artifacts/sales-os/dist/public",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+  "outputDirectory": "artifacts/sales-os/dist/public"
 }
   "version": 2,
   "buildCommand": "pnpm --filter @workspace/sales-os build",
