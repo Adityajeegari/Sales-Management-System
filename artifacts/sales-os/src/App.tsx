@@ -36,6 +36,9 @@ import NotFound from "@/pages/not-found";
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+const isLocalhostProxy =
+  typeof clerkProxyUrl === "string" &&
+  /^(https?:)?\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/.test(clerkProxyUrl);
 
 function stripBase(path: string): string {
   return basePath && path.startsWith(basePath)
@@ -258,7 +261,7 @@ function SalesOsProviderWithRoutes() {
   return (
     <SalesOsProvider
       publishableKey={clerkPubKey}
-      proxyUrl={clerkProxyUrl}
+      proxyUrl={!isLocalhostProxy ? clerkProxyUrl : undefined}
       appearance={salesOsAppearance}
       signInUrl={`${basePath}/sign-in`}
       signUpUrl={`${basePath}/sign-up`}
