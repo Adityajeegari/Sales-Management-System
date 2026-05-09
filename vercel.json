@@ -1,6 +1,6 @@
 {
-  "buildCommand": "corepack pnpm install && corepack pnpm run build",
+  "buildCommand": "corepack pnpm run build",
   "outputDirectory": "artifacts/sales-os/dist/public",
   "framework": "vite",
-  "installCommand": "corepack pnpm install --frozen-lockfile"
+  "installCommand": "corepack pnpm install"
 }
