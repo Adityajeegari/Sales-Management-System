@@ -1,6 +1,6 @@
 {
-  "buildCommand": "corepack pnpm run build",
+  "buildCommand": "echo 'Build already complete - using pre-built artifacts'",
   "outputDirectory": "artifacts/sales-os/dist/public",
-  "framework": "vite",
-  "installCommand": "corepack pnpm install"
+  "framework": "static",
+  "installCommand": "echo 'No install needed - static site'"
 }
