@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm --filter @workspace/sales-os build",
+  "outputDirectory": "artifacts/sales-os/dist/public",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}{
+  "version": 2,
+  "buildCommand": "pnpm --filter @workspace/sales-os build",
+  "outputDirectory": "./artifacts/sales-os/dist/public"
+}
