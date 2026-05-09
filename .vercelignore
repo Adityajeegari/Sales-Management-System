@@ -1,0 +1,22 @@
+# Ignore common bulky folders and files
+node_modules
+**/node_modules
+*.log
+.vscode
+.local
+.env
+.env.*
+.git
+npm-debug.log
+.cache
+.caches
+coverage
+tmp
+temp
+.DS_Store
+
+# Keep Vercel config and the prebuilt public artifacts
+!.vercelignore
+!vercel.json
+!artifacts/sales-os/dist/public/**
+!artifacts/sales-os/dist/public/*
